@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard - Security Awareness Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="brand-name">PhishGuard</div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#campaigns" class="nav-link" data-section="campaigns">
+                        <i class="fas fa-rocket"></i>
+                        <span class="nav-text">Campaigns</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#employees" class="nav-link" data-section="employees">
+                        <i class="fas fa-users"></i>
+                        <span class="nav-text">Employees</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#simulator" class="nav-link" data-section="simulator">
+                        <i class="fas fa-envelope"></i>
+                        <span class="nav-text">Email Simulator</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#training" class="nav-link" data-section="training">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span class="nav-text">Training Modules</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#reports" class="nav-link" data-section="reports">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="nav-text">Reports & Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#compliance" class="nav-link" data-section="compliance">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span class="nav-text">GRC Compliance</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#settings" class="nav-link" data-section="settings">
+                        <i class="fas fa-cog"></i>
+                        <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <i class="fas fa-sign-out-alt"></i>
+                <span class="sidebar-footer-text">Logout</span>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <div class="page-title">Dashboard Overview</div>
+                <div class="header-controls">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <img src="/api/placeholder/40/40" alt="User Avatar" class="avatar">
+                        <div class="user-info">
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Content sections -->
+            <div id="page-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="content-section active">
+                    <div class="dashboard-metrics">
+                        <div class="metric-card">
+                            <div class="metric-icon bg-primary">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-title">Active Campaigns</div>
+                                <div class="metric-value">5</div>
+                                <div class="metric-change up">
+                                    <i class="fas fa-arrow-up"></i> 20% from last month
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-danger">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-title">Phishing Success Rate</div>
+                                <div class="metric-value">24.8%</div>
+                                <div class="metric-change down">
+                                    <i class="fas fa-arrow-down"></i> 8.3% from last month
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-success">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-title">Training Completion</div>
+                                <div class="metric-value">78.6%</div>
+                                <div class="metric-change up">
+                                    <i class="fas fa-arrow-up"></i> 12.4% from last month
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon bg-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="metric-content">
+                                <div class="metric-title">Risk Score</div>
+                                <div class="metric-value">62/100</div>
+                                <div class="metric-change down">
+                                    <i class="fas fa-arrow-down"></i> 7 points from last month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-charts">
+                        <div class="chart-card large">
+                            <div class="card-header">
+                                <h3>Phishing Campaign Performance</h3>
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="dropdown-toggle">Last 6 Months <i class="fas fa-chevron-down"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="campaignPerformanceChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3>Employee Vulnerability</h3>
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="dropdown-toggle">By Department <i class="fas fa-chevron-down"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="vulnerabilityChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="card-header">
+                                <h3>Training Metrics</h3>
+                                <div class="card-actions">
+                                    <div class="dropdown">
+                                        <button class="dropdown-toggle">All Modules <i class="fas fa-chevron-down"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="trainingMetricsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-recent">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recent Activities</h3>
+                                <a href="#" class="view-all">View All</a>
+                            </div>
+                            <div class="card-body">
+                                <div class="activity-list">
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-primary">
+                                            <i class="fas fa-rocket"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">New Campaign Started</div>
+                                            <div class="activity-desc">Q1 Executive Campaign launched targeting 35 executives</div>
+                                            <div class="activity-time">35 minutes ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-danger">
+                                            <i class="fas fa-fish"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">High Click Rate Detected</div>
+                                            <div class="activity-desc">IT Department campaign has 32% click rate</div>
+                                            <div class="activity-time">2 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-success">
+                                            <i class="fas fa-graduation-cap"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">Training Module Completed</div>
+                                            <div class="activity-desc">Finance team completed GDPR compliance training</div>
+                                            <div class="activity-time">Yesterday</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-icon bg-warning">
+                                            <i class="fas fa-users"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">New Employees Added</div>
+                                            <div class="activity-desc">23 new employees added from HR API sync</div>
+                                            <div class="activity-time">2 days ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Campaigns Section -->
+                <section id="campaigns-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Campaign Management</h2>
+                        <button class="btn btn-primary"><i class="fas fa-plus"></i> New Campaign</button>
+                    </div>
+
+                    <div class="tabs">
+                        <div class="tab active" data-tab="active-campaigns">Active Campaigns</div>
+                        <div class="tab" data-tab="scheduled">Scheduled</div>
+                        <div class="tab" data-tab="completed">Completed</div>
+                        <div class="tab" data-tab="templates">Templates</div>
+                    </div>
+
+                    <div class="tab-content active" id="active-campaigns-content">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Campaign Name</th>
+                                        <th>Target Group</th>
+                                        <th>Status</th>
+                                        <th>Progress</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Success Rate</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Executive Awareness</td>
+                                        <td>Executive Team (24)</td>
+                                        <td><span class="status-badge in-progress">In Progress</span></td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress" style="width: 65%"></div>
+                                            </div>
+                                            <div class="progress-text">65%</div>
+                                        </td>
+                                        <td>Mar 01, 2025</td>
+                                        <td>Mar 15, 2025</td>
+                                        <td>18.2%</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Finance Phish Test</td>
+                                        <td>Finance Dept (42)</td>
+                                        <td><span class="status-badge in-progress">In Progress</span></td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress" style="width: 82%"></div>
+                                            </div>
+                                            <div class="progress-text">82%</div>
+                                        </td>
+                                        <td>Feb 25, 2025</td>
+                                        <td>Mar 20, 2025</td>
+                                        <td>12.5%</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>IT Security Test</td>
+                                        <td>IT Department (38)</td>
+                                        <td><span class="status-badge in-progress">In Progress</span></td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress" style="width: 45%"></div>
+                                            </div>
+                                            <div class="progress-text">45%</div>
+                                        </td>
+                                        <td>Mar 05, 2025</td>
+                                        <td>Mar 25, 2025</td>
+                                        <td>8.7%</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="scheduled-content">
+                        <!-- Scheduled campaigns content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>Scheduled Campaigns</h3>
+                            <p>You have 4 campaigns scheduled for upcoming dates</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="completed-content">
+                        <!-- Completed campaigns content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Completed Campaigns</h3>
+                            <p>View results from 18 completed campaigns</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="templates-content">
+                        <!-- Templates content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-copy"></i>
+                            <h3>Campaign Templates</h3>
+                            <p>12 templates available for quick campaign setup</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Employees Section -->
+                <section id="employees-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Employee Management</h2>
+                        <div class="button-group">
+                            <button class="btn btn-outline"><i class="fas fa-upload"></i> Import</button>
+                            <button class="btn btn-outline"><i class="fas fa-sync"></i> Sync HR</button>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Employee</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <div class="search-input">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search employees...">
+                        </div>
+                        <div class="filter-controls">
+                            <div class="filter-item">
+                                <label>Department:</label>
+                                <select>
+                                    <option>All Departments</option>
+                                    <option>Executive</option>
+                                    <option>IT</option>
+                                    <option>Finance</option>
+                                    <option>HR</option>
+                                    <option>Marketing</option>
+                                    <option>Sales</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Risk Level:</label>
+                                <select>
+                                    <option>All Levels</option>
+                                    <option>High</option>
+                                    <option>Medium</option>
+                                    <option>Low</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-outline"><i class="fas fa-filter"></i> More Filters</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Risk Score</th>
+                                    <th>Training Complete</th>
+                                    <th>Last Phished</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <img src="/api/placeholder/32/32" alt="User" class="avatar-small">
+                                            <span>John Smith</span>
+                                        </div>
+                                    </td>
+                                    <td>john.smith@company.com</td>
+                                    <td>Executive</td>
+                                    <td>
+                                        <div class="risk-indicator high">
+                                            <span class="risk-value">85</span>
+                                            <span class="risk-label">High</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 65%"></div>
+                                        </div>
+                                        <div class="progress-text">65%</div>
+                                    </td>
+                                    <td>Mar 8, 2025</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <img src="/api/placeholder/32/32" alt="User" class="avatar-small">
+                                            <span>Sarah Johnson</span>
+                                        </div>
+                                    </td>
+                                    <td>sarah.j@company.com</td>
+                                    <td>Finance</td>
+                                    <td>
+                                        <div class="risk-indicator medium">
+                                            <span class="risk-value">52</span>
+                                            <span class="risk-label">Medium</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 100%"></div>
+                                        </div>
+                                        <div class="progress-text">100%</div>
+                                    </td>
+                                    <td>Mar 2, 2025</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <img src="/api/placeholder/32/32" alt="User" class="avatar-small">
+                                            <span>Michael Chen</span>
+                                        </div>
+                                    </td>
+                                    <td>michael.c@company.com</td>
+                                    <td>IT</td>
+                                    <td>
+                                        <div class="risk-indicator low">
+                                            <span class="risk-value">24</span>
+                                            <span class="risk-label">Low</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 90%"></div>
+                                        </div>
+                                        <div class="progress-text">90%</div>
+                                    </td>
+                                    <td>Feb 20, 2025</td>
+                                    <td><span class="status-badge active">Active</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination">
+                        <button class="btn-icon"><i class="fas fa-chevron-left"></i></button>
+                        <button class="page-number active">1</button>
+                        <button class="page-number">2</button>
+                        <button class="page-number">3</button>
+                        <span class="page-ellipsis">...</span>
+                        <button class="page-number">12</button>
+                        <button class="btn-icon"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </section>
+
+                <!-- Email Simulator Section -->
+                <section id="simulator-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Email Inbox Simulator</h2>
+                        <div class="button-group">
+                            <button class="btn btn-outline"><i class="fas fa-save"></i> Save Template</button>
+                            <button class="btn btn-primary"><i class="fas fa-paper-plane"></i> Test Email</button>
+                        </div>
+                    </div>
+
+                    <div class="simulator-container">
+                        <div class="simulator-sidebar">
+                            <div class="simulator-section">
+                                <h3>Email Templates</h3>
+                                <div class="template-list">
+                                    <div class="template-item active">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Password Reset</span>
+                                    </div>
+                                    <div class="template-item">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Office 365 Login</span>
+                                    </div>
+                                    <div class="template-item">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Invoice Payment</span>
+                                    </div>
+                                    <div class="template-item">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>Shipment Notification</span>
+                                    </div>
+                                    <div class="template-item">
+                                        <i class="fas fa-file-alt"></i>
+                                        <span>HR Benefits Update</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="simulator-section">
+                                <h3>Template Elements</h3>
+                                <div class="element-list">
+                                    <div class="element-item">
+                                        <i class="fas fa-font"></i>
+                                        <span>Text Block</span>
+                                    </div>
+                                    <div class="element-item">
+                                        <i class="fas fa-image"></i>
+                                        <span>Image</span>
+                                    </div>
+                                    <div class="element-item">
+                                        <i class="fas fa-link"></i>
+                                        <span>Button/Link</span>
+                                    </div>
+                                    <div class="element-item">
+                                        <i class="fas fa-table"></i>
+                                        <span>Table</span>
+                                    </div>
+                                    <div class="element-item">
+                                        <i class="fas fa-signature"></i>
+                                        <span>Signature</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="simulator-section">
+                                <h3>Tracking Options</h3>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="track-opens" checked>
+                                    <label for="track-opens">Track Opens</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="track-clicks" checked>
+                                    <label for="track-clicks">Track Clicks</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="track-downloads">
+                                    <label for="track-downloads">Track Downloads</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="track-submissions" checked>
+                                    <label for="track-submissions">Track Form Submissions</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="simulator-content">
+                            <div class="email-preview-header">
+                                <div class="email-controls">
+                                    <button class="btn-icon"><i class="fas fa-arrow-left"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-arrow-right"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-redo"></i></button>
+                                </div>
+                                <div class="email-address-bar">
+                                    <i class="fas fa-lock"></i>
+                                    <span>https://mail.company.com/inbox</span>
+                                </div>
+                            </div>
+
+                            <div class="email-preview">
+                                <div class="email-header">
+                                    <div class="email-sender">
+                                        <img src="/api/placeholder/40/40" alt="Microsoft Logo" class="sender-logo">
+                                        <div class="sender-details">
+                                            <div class="sender-name">Microsoft Account Team</div>
+                                            <div class="sender-email">account-security@microsoft.com</div>
+                                        </div>
+                                    </div>
+                                    <div class="email-subject">
+                                        Your Microsoft Account password needs to be reset
+                                    </div>
+                                    <div class="email-time">March 10, 2025 10:42 AM</div>
+                                </div>
+
+                                <div class="email-body">
+                                    <div class="editable-area" contenteditable="true">
+                                        <div class="email-content">
+                                            <img src="/api/placeholder/600/100" alt="Microsoft" class="company-banner">
+                                            
+                                            <p class="greeting">Hello John,</p>
+                                            
+                                            <p>We detected unusual sign-in activity on your Microsoft account. To help keep you safe, we've temporarily locked your account.</p>
+                                            
+                                            <p>To unlock your account, you'll need to verify your identity and reset your password by clicking the button below:</p>
+                                            
+                                            <div class="action-button">
+                                                <a href="#" class="cta-button">Reset Password</a>
+                                            </div>
+                                            
+                                            <p>If you didn't try to sign in to your account, someone else might be trying to access it. Please reset your password immediately.</p>
+                                            
+                                            <p class="security-note">For your security, this link will expire in 24 hours.</p>
+                                            
+                                            <p>Thank you,<br>The Microsoft Account Team</p>
+                                            
+                                            <div class="footer-info">
+                                                <p>© 2025 Microsoft Corporation. All rights reserved.</p>
+                                                <p>Microsoft respects your privacy. Please read our <a href="#">Privacy Statement</a>.</p>
+                                                <p>Microsoft Corporation, One Microsoft Way, Redmond, WA 98052 USA</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="email-preview-footer">
+                                <div class="phishing-indicators">
+                                    <h4>Phishing Indicators</h4>
+                                    <div class="indicator-list">
+                                        <div class="indicator-item">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>Spoofed sender address</span>
+                                        </div>
+                                        <div class="indicator-item">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>Urgent call to action</span>
+                                        </div>
+                                        <div class="indicator-item">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <span>Suspicious link destination</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="training-options">
+                                    <h4>Training Options</h4>
+                                    <div class="training-select">
+                                        <select>
+                                            <option>Immediate feedback</option>
+                                            <option>Redirect to training module</option>
+                                            <option>Delayed feedback (24 hours)</option>
+                                            <option>Custom training path</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Training Modules Section -->
+                <section id="training-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Training Modules</h2>
+                        <div class="button-group">
+                            <button class="btn btn-outline"><i class="fas fa-upload"></i> Import Module</button>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Create Module</button>
+                        </div>
+                    </div>
+
+                    <div class="modules-grid">
+                        <div class="module-card">
+                            <div class="module-header">
+                                <img src="/api/placeholder/260/160" alt="Phishing Basics" class="module-image">
+                                <span class="module-badge">Core</span>
+                            </div>
+                            <div class="module-body">
+                                <h3>Phishing Basics</h3>
+                                <div class="module-meta">
+                                    <span><i class="fas fa-clock"></i> 15 min</span>
+                                    <span><i class="fas fa-user"></i> All Employees</span>
+                                </div>
+                                <p class="module-desc">Learn to identify and avoid common phishing attempts in your inbox.</p>
+                                <div class="module-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Completion</span>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 82%"></div>
+                                        </div>
+                                        <span class="stat-value">82%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Avg. Score</span>
+                                        <span class="stat-value">89%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <button class="btn btn-outline"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-primary"><i class="fas fa-eye"></i> Preview</button>
+                            </div>
+                        </div>
+
+                        <div class="module-card">
+                            <div class="module-header">
+                                <img src="/api/placeholder/260/160" alt="Social Engineering" class="module-image">
+                                <span class="module-badge">Advanced</span>
+                            </div>
+                            <div class="module-body">
+                                <h3>Social Engineering</h3>
+                                <div class="module-meta">
+                                    <span><i class="fas fa-clock"></i> 20 min</span>
+                                    <span><i class="fas fa-user"></i> IT, Finance</span>
+                                </div>
+                                <p class="module-desc">Understand sophisticated social engineering techniques and defenses.</p>
+                                <div class="module-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Completion</span>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 64%"></div>
+                                        </div>
+                                        <span class="stat-value">64%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Avg. Score</span>
+                                        <span class="stat-value">76%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <button class="btn btn-outline"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-primary"><i class="fas fa-eye"></i> Preview</button>
+                            </div>
+                        </div>
+
+                        <div class="module-card">
+                            <div class="module-header">
+                                <img src="/api/placeholder/260/160" alt="Mobile Security" class="module-image">
+                                <span class="module-badge">Standard</span>
+                            </div>
+                            <div class="module-body">
+                                <h3>Mobile Security</h3>
+                                <div class="module-meta">
+                                    <span><i class="fas fa-clock"></i> 18 min</span>
+                                    <span><i class="fas fa-user"></i> All Employees</span>
+                                </div>
+                                <p class="module-desc">Stay safe while using mobile devices for work and personal use.</p>
+                                <div class="module-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Completion</span>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 48%"></div>
+                                        </div>
+                                        <span class="stat-value">48%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Avg. Score</span>
+                                        <span class="stat-value">92%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <button class="btn btn-outline"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-primary"><i class="fas fa-eye"></i> Preview</button>
+                            </div>
+                        </div>
+
+                        <div class="module-card">
+                            <div class="module-header">
+                                <img src="/api/placeholder/260/160" alt="Password Security" class="module-image">
+                                <span class="module-badge">Core</span>
+                            </div>
+                            <div class="module-body">
+                                <h3>Password Security</h3>
+                                <div class="module-meta">
+                                    <span><i class="fas fa-clock"></i> 15 min</span>
+                                    <span><i class="fas fa-user"></i> All Employees</span>
+                                </div>
+                                <p class="module-desc">Create and manage secure passwords across all your accounts.</p>
+                                <div class="module-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Completion</span>
+                                        <div class="progress-bar">
+                                            <div class="progress" style="width: 93%"></div>
+                                        </div>
+                                        <span class="stat-value">93%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Avg. Score</span>
+                                        <span class="stat-value">88%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="module-footer">
+                                <button class="btn btn-outline"><i class="fas fa-edit"></i> Edit</button>
+                                <button class="btn btn-primary"><i class="fas fa-eye"></i> Preview</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Reports & Analytics</h2>
+                        <div class="button-group">
+                            <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
+                            <button class="btn btn-outline"><i class="fas fa-cog"></i> Configure</button>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> New Report</button>
+                        </div>
+                    </div>
+
+                    <div class="report-filters">
+                        <div class="filter-row">
+                            <div class="filter-item">
+                                <label>Date Range:</label>
+                                <div class="date-picker">
+                                    <input type="text" value="Feb 01, 2025 - Mar 10, 2025">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                            </div>
+                            <div class="filter-item">
+                                <label>Department:</label>
+                                <select>
+                                    <option>All Departments</option>
+                                    <option>Executive</option>
+                                    <option>IT</option>
+                                    <option>Finance</option>
+                                    <option>HR</option>
+                                    <option>Marketing</option>
+                                    <option>Sales</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Report Type:</label>
+                                <select>
+                                    <option>Campaign Performance</option>
+                                    <option>User Activity</option>
+                                    <option>Training Completion</option>
+                                    <option>Risk Assessment</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-outline"><i class="fas fa-filter"></i> Apply Filters</button>
+                        </div>
+                    </div>
+
+                    <div class="report-dashboard">
+                        <div class="report-card large">
+                            <div class="card-header">
+                                <h3>Phishing Campaign Effectiveness</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="campaignEffectivenessChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>Attack Vector Success Rate</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="attackVectorChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>Risk Score Trend</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="riskScoreChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>Training Effectiveness</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="trainingEffectivenessChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-card">
+                            <div class="card-header">
+                                <h3>Department Comparison</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="departmentComparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Compliance Section -->
+                <section id="compliance-section" class="content-section">
+                    <div class="section-header">
+                        <h2>GRC Compliance</h2>
+                        <div class="button-group">
+                            <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
+                            <button class="btn btn-primary"><i class="fas fa-file-alt"></i> Generate Report</button>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <div class="tab active" data-tab="frameworks">Frameworks</div>
+                        <div class="tab" data-tab="reports">Compliance Reports</div>
+                        <div class="tab" data-tab="audit">Audit Logs</div>
+                        <div class="tab" data-tab="mappings">Control Mappings</div>
+                    </div>
+
+                    <div class="tab-content active" id="frameworks-content">
+                        <div class="compliance-frameworks">
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>ISO 27001</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="78">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="78, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">78%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">24</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">18</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Feb 15, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
+
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-file-contract"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>SOC 2</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="92">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="92, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">92%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">18</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">16</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Mar 02, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
+
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>GDPR</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="65">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="65, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">65%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">22</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">14</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Jan 20, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
+
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-hospital"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>HIPAA</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="84">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="84, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">84%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">16</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">13</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Feb 28, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="reports-content">
+                        <!-- Reports content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-file-alt"></i>
+                            <h3>Compliance Reports</h3>
+                            <p>Generate and manage compliance reports for various frameworks</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="audit-content">
+                        <!-- Audit logs content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-history"></i>
+                            <h3>Audit Logs</h3>
+                            <p>View detailed logs of all security awareness activities</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="mappings-content">
+                        <!-- Control mappings content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-project-diagram"></i>
+                            <h3>Control Mappings</h3>
+                            <p>Map phishing and security training to compliance controls</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Settings Section -->
+                <section id="settings-section" class="content-section">
+                    <!-- Settings content would go here -->
+                    <div class="section-header">
+                        <h2>Platform Settings</h2>
+                    </div>
+
+                    <div class="tabs">
+                        <div class="tab active" data-tab="general">General</div>
+                        <div class="tab" data-tab="integrations">Integrations</div>
+                        <div class="tab" data-tab="notifications">Notifications</div>
+                        <div class="tab" data-tab="users">User Management</div>
+                    </div>
+
+                    <div class="tab-content active" id="general-content">
+                        <div class="settings-form">
+                            <div class="form-section">
+                                <h3>Organization Settings</h3>
+                                <div class="form-group">
+                                    <label>Organization Name</label>
+                                    <input type="text" value="Acme Corporation">
+                                </div>
+                                <div class="form-group">
+                                    <label>Industry</label>
+                                    <select>
+                                        <option>Technology</option>
+                                        <option>Healthcare</option>
+                                        <option>Finance</option>
+                                        <option>Education</option>
+                                        <option>Manufacturing</option>
+                                        <option>Retail</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Company Size</label>
+                                    <select>
+                                        <option>1-50 employees</option>
+                                        <option>51-200 employees</option>
+                                        <option selected>201-1000 employees</option>
+                                        <option>1001-5000 employees</option>
+                                        <option>5001+ employees</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Email Settings</h3>
+                                <div class="form-group">
+                                    <label>SMTP Server</label>
+                                    <input type="text" value="smtp.company.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>SMTP Port</label>
+                                    <input type="text" value="587">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email From</label>
+                                    <input type="text" value="security-training@company.com">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Authentication</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="email-auth" checked>
+                                        <label for="email-auth"></label>
+                                        <span class="toggle-label">Enabled</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Security Settings</h3>
+                                <div class="form-group">
+                                    <label>Two-Factor Authentication</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="two-factor" checked>
+                                        <label for="two-factor"></label>
+                                        <span class="toggle-label">Required for all admin users</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Session Timeout</label>
+                                    <select>
+                                        <option>15 minutes</option>
+                                        <option selected>30 minutes</option>
+                                        <option>1 hour</option>
+                                        <option>2 hours</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>IP Restrictions</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="ip-restrict">
+                                        <label for="ip-restrict"></label>
+                                        <span class="toggle-label">Disabled</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-buttons">
+                                <button class="btn btn-outline">Cancel</button>
+                                <button class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="integrations-content">
+                        <!-- Integrations content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-plug"></i>
+                            <h3>API Integrations</h3>
+                            <p>Connect with HR systems, SSO providers, and security tools</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="notifications-content">
+                        <!-- Notifications content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-bell"></i>
+                            <h3>Notification Settings</h3>
+                            <p>Configure alerts, reports, and communication preferences</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="users-content">
+                        <!-- User management content would go here -->
+                        <div class="placeholder-content">
+                            <i class="fas fa-users-cog"></i>
+                            <h3>User & Role Management</h3>
+                            <p>Manage platform access and permissions</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Modal Windows (hidden by default) -->
+            <div class="modal" id="new-campaign-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create New Campaign</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Modal body content would go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline">Cancel</button>
+                        <button class="btn btn-primary">Create Campaign</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
