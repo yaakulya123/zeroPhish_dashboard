@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhishGuard - Security Awareness Platform</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.5/apexcharts.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -76,6 +77,13 @@
 
         <!-- Main Content Area -->
         <div class="main-content">
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="loading-overlay">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
             <!-- Header -->
             <div class="header">
                 <div class="page-title">Dashboard Overview</div>
@@ -87,12 +95,86 @@
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
                         <span class="badge">3</span>
+                        <div class="notification-dropdown">
+                            <div class="notification-header">
+                                <h3>Notifications</h3>
+                                <button class="btn-text">Mark all as read</button>
+                            </div>
+                            <div class="notification-list">
+                                <div class="notification-item unread">
+                                    <div class="notification-icon bg-danger">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Critical Phishing Alert</div>
+                                        <div class="notification-desc">Multiple executives targeted in spear phishing attempt</div>
+                                        <div class="notification-time">35 min ago</div>
+                                    </div>
+                                    <div class="notification-actions">
+                                        <button class="btn-icon-small"><i class="fas fa-ellipsis-v"></i></button>
+                                    </div>
+                                </div>
+                                <div class="notification-item unread">
+                                    <div class="notification-icon bg-warning">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Training Compliance</div>
+                                        <div class="notification-desc">15 employees need to complete required training</div>
+                                        <div class="notification-time">2 hours ago</div>
+                                    </div>
+                                    <div class="notification-actions">
+                                        <button class="btn-icon-small"><i class="fas fa-ellipsis-v"></i></button>
+                                    </div>
+                                </div>
+                                <div class="notification-item">
+                                    <div class="notification-icon bg-success">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">Campaign Completed</div>
+                                        <div class="notification-desc">Q1 Finance Campaign has completed with 84% success rate</div>
+                                        <div class="notification-time">Yesterday</div>
+                                    </div>
+                                    <div class="notification-actions">
+                                        <button class="btn-icon-small"><i class="fas fa-ellipsis-v"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="notification-footer">
+                                <a href="#" class="btn-text">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-toggle">
+                        <button id="theme-switch" class="btn-icon theme-switch">
+                            <i class="fas fa-moon"></i>
+                        </button>
                     </div>
                     <div class="user-profile">
                         <img src="/api/placeholder/40/40" alt="User Avatar" class="avatar">
                         <div class="user-info">
                             <div class="user-name">Admin User</div>
                             <div class="user-role">Administrator</div>
+                        </div>
+                        <div class="profile-dropdown">
+                            <div class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>My Profile</span>
+                            </div>
+                            <div class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Account Settings</span>
+                            </div>
+                            <div class="dropdown-item">
+                                <i class="fas fa-question-circle"></i>
+                                <span>Help & Support</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -102,6 +184,45 @@
             <div id="page-content">
                 <!-- Dashboard Section -->
                 <section id="dashboard-section" class="content-section active">
+                    <div class="dashboard-summary">
+                        <div class="summary-card">
+                            <div class="summary-header">
+                                <h3>Security Posture Summary</h3>
+                                <div class="dropdown">
+                                    <button class="dropdown-toggle">Last 30 Days <i class="fas fa-chevron-down"></i></button>
+                                </div>
+                            </div>
+                            <div class="summary-content">
+                                <div class="gauge-chart-container">
+                                    <div id="securityPostureGauge"></div>
+                                </div>
+                                <div class="summary-metrics">
+                                    <div class="summary-metric">
+                                        <div class="metric-label">Overall Risk</div>
+                                        <div class="metric-value">Medium</div>
+                                        <div class="metric-trend down">
+                                            <i class="fas fa-arrow-down"></i> 12% Improvement
+                                        </div>
+                                    </div>
+                                    <div class="summary-metric">
+                                        <div class="metric-label">Employee Awareness</div>
+                                        <div class="metric-value">Good</div>
+                                        <div class="metric-trend up">
+                                            <i class="fas fa-arrow-up"></i> 8% Improvement
+                                        </div>
+                                    </div>
+                                    <div class="summary-metric">
+                                        <div class="metric-label">Training Status</div>
+                                        <div class="metric-value">78.6%</div>
+                                        <div class="metric-trend up">
+                                            <i class="fas fa-arrow-up"></i> 12.4% Increase
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="dashboard-metrics">
                         <div class="metric-card">
                             <div class="metric-icon bg-primary">
@@ -164,7 +285,7 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="campaignPerformanceChart"></canvas>
+                                <div id="campaignPerformanceChart"></div>
                             </div>
                         </div>
 
@@ -178,13 +299,13 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="vulnerabilityChart"></canvas>
+                                <div id="vulnerabilityChart"></div>
                             </div>
                         </div>
 
                         <div class="chart-card">
                             <div class="card-header">
-                                <h3>Training Metrics</h3>
+                                <h3>Training Completion Funnel</h3>
                                 <div class="card-actions">
                                     <div class="dropdown">
                                         <button class="dropdown-toggle">All Modules <i class="fas fa-chevron-down"></i></button>
@@ -192,7 +313,41 @@
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="trainingMetricsChart"></canvas>
+                                <div id="trainingFunnelChart"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-advanced">
+                        <div class="chart-card large">
+                            <div class="card-header">
+                                <h3>Phishing Success Rate Heatmap</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon" data-tooltip="Shows vulnerability patterns across departments and time"><i class="fas fa-info-circle"></i></button>
+                                    <div class="dropdown">
+                                        <button class="dropdown-toggle">Last Quarter <i class="fas fa-chevron-down"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="phishingHeatmapChart"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-advanced">
+                        <div class="chart-card large">
+                            <div class="card-header">
+                                <h3>Attack Vector Network</h3>
+                                <div class="card-actions">
+                                    <button class="btn-icon" data-tooltip="Visualizes relationships between attack vectors and targeted departments"><i class="fas fa-info-circle"></i></button>
+                                    <div class="dropdown">
+                                        <button class="dropdown-toggle">All Active Campaigns <i class="fas fa-chevron-down"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="attackVectorNetworkChart"></div>
                             </div>
                         </div>
                     </div>
@@ -255,7 +410,7 @@
                 <section id="campaigns-section" class="content-section">
                     <div class="section-header">
                         <h2>Campaign Management</h2>
-                        <button class="btn btn-primary"><i class="fas fa-plus"></i> New Campaign</button>
+                        <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> New Campaign</button>
                     </div>
 
                     <div class="tabs">
@@ -296,9 +451,9 @@
                                         <td>18.2%</td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
-                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
-                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                                <button class="btn-icon" title="View Details" data-tooltip="View campaign details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign" data-tooltip="Edit campaign settings"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign" data-tooltip="Pause campaign"><i class="fas fa-pause"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -317,9 +472,9 @@
                                         <td>12.5%</td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
-                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
-                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                                <button class="btn-icon" title="View Details" data-tooltip="View campaign details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign" data-tooltip="Edit campaign settings"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign" data-tooltip="Pause campaign"><i class="fas fa-pause"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -338,9 +493,9 @@
                                         <td>8.7%</td>
                                         <td>
                                             <div class="action-buttons">
-                                                <button class="btn-icon" title="View Details"><i class="fas fa-eye"></i></button>
-                                                <button class="btn-icon" title="Edit Campaign"><i class="fas fa-edit"></i></button>
-                                                <button class="btn-icon" title="Pause Campaign"><i class="fas fa-pause"></i></button>
+                                                <button class="btn-icon" title="View Details" data-tooltip="View campaign details"><i class="fas fa-eye"></i></button>
+                                                <button class="btn-icon" title="Edit Campaign" data-tooltip="Edit campaign settings"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon" title="Pause Campaign" data-tooltip="Pause campaign"><i class="fas fa-pause"></i></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -384,7 +539,7 @@
                         <div class="button-group">
                             <button class="btn btn-outline"><i class="fas fa-upload"></i> Import</button>
                             <button class="btn btn-outline"><i class="fas fa-sync"></i> Sync HR</button>
-                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Employee</button>
+                            <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> Add Employee</button>
                         </div>
                     </div>
 
@@ -461,9 +616,9 @@
                                     <td><span class="status-badge active">Active</span></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
-                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
-                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                            <button class="btn-icon" title="View Profile" data-tooltip="View employee profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit" data-tooltip="Edit employee details"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options" data-tooltip="More options"><i class="fas fa-ellipsis-v"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -493,9 +648,9 @@
                                     <td><span class="status-badge active">Active</span></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
-                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
-                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                            <button class="btn-icon" title="View Profile" data-tooltip="View employee profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit" data-tooltip="Edit employee details"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options" data-tooltip="More options"><i class="fas fa-ellipsis-v"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -525,9 +680,9 @@
                                     <td><span class="status-badge active">Active</span></td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-icon" title="View Profile"><i class="fas fa-user"></i></button>
-                                            <button class="btn-icon" title="Edit"><i class="fas fa-edit"></i></button>
-                                            <button class="btn-icon" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                                            <button class="btn-icon" title="View Profile" data-tooltip="View employee profile"><i class="fas fa-user"></i></button>
+                                            <button class="btn-icon" title="Edit" data-tooltip="Edit employee details"><i class="fas fa-edit"></i></button>
+                                            <button class="btn-icon" title="More Options" data-tooltip="More options"><i class="fas fa-ellipsis-v"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -730,7 +885,7 @@
                         <h2>Training Modules</h2>
                         <div class="button-group">
                             <button class="btn btn-outline"><i class="fas fa-upload"></i> Import Module</button>
-                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Create Module</button>
+                            <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> Create Module</button>
                         </div>
                     </div>
 
@@ -915,12 +1070,12 @@
                             <div class="card-header">
                                 <h3>Phishing Campaign Effectiveness</h3>
                                 <div class="card-actions">
-                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                    <button class="btn-icon" data-tooltip="Download report"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon" data-tooltip="Expand view"><i class="fas fa-expand"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="campaignEffectivenessChart"></canvas>
+                                <div id="campaignEffectivenessChart"></div>
                             </div>
                         </div>
 
@@ -928,12 +1083,12 @@
                             <div class="card-header">
                                 <h3>Attack Vector Success Rate</h3>
                                 <div class="card-actions">
-                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                    <button class="btn-icon" data-tooltip="Download report"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon" data-tooltip="Expand view"><i class="fas fa-expand"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="attackVectorChart"></canvas>
+                                <div id="attackVectorChart"></div>
                             </div>
                         </div>
 
@@ -941,12 +1096,12 @@
                             <div class="card-header">
                                 <h3>Risk Score Trend</h3>
                                 <div class="card-actions">
-                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                    <button class="btn-icon" data-tooltip="Download report"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon" data-tooltip="Expand view"><i class="fas fa-expand"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="riskScoreChart"></canvas>
+                                <div id="riskScoreChart"></div>
                             </div>
                         </div>
 
@@ -954,12 +1109,12 @@
                             <div class="card-header">
                                 <h3>Training Effectiveness</h3>
                                 <div class="card-actions">
-                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                    <button class="btn-icon" data-tooltip="Download report"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon" data-tooltip="Expand view"><i class="fas fa-expand"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="trainingEffectivenessChart"></canvas>
+                                <div id="trainingEffectivenessChart"></div>
                             </div>
                         </div>
 
@@ -967,12 +1122,12 @@
                             <div class="card-header">
                                 <h3>Department Comparison</h3>
                                 <div class="card-actions">
-                                    <button class="btn-icon"><i class="fas fa-download"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-expand"></i></button>
+                                    <button class="btn-icon" data-tooltip="Download report"><i class="fas fa-download"></i></button>
+                                    <button class="btn-icon" data-tooltip="Expand view"><i class="fas fa-expand"></i></button>
                                 </div>
                             </div>
                             <div class="card-body">
-                                <canvas id="departmentComparisonChart"></canvas>
+                                <div id="departmentComparisonChart"></div>
                             </div>
                         </div>
                     </div>
@@ -992,10 +1147,37 @@
                         <div class="tab active" data-tab="frameworks">Frameworks</div>
                         <div class="tab" data-tab="reports">Compliance Reports</div>
                         <div class="tab" data-tab="audit">Audit Logs</div>
+                        <div class="tab" data-tab="remediation">Risk Remediation</div>
                         <div class="tab" data-tab="mappings">Control Mappings</div>
                     </div>
 
                     <div class="tab-content active" id="frameworks-content">
+                        <div class="filter-bar">
+                            <div class="filter-controls">
+                                <div class="filter-item">
+                                    <label>Industry:</label>
+                                    <select id="industry-filter">
+                                        <option>All Industries</option>
+                                        <option>Healthcare</option>
+                                        <option>Finance</option>
+                                        <option>Retail</option>
+                                        <option>Technology</option>
+                                        <option>Government</option>
+                                    </select>
+                                </div>
+                                <div class="filter-item">
+                                    <label>Status:</label>
+                                    <select id="status-filter">
+                                        <option>All Statuses</option>
+                                        <option>Compliant</option>
+                                        <option>In Progress</option>
+                                        <option>At Risk</option>
+                                        <option>Not Started</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="compliance-frameworks">
                             <div class="framework-card">
                                 <div class="framework-icon">
@@ -1136,11 +1318,81 @@
                                     <button class="btn btn-outline">View Details</button>
                                 </div>
                             </div>
+
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-credit-card"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>PCI DSS</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="76">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="76, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">76%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">20</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">15</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Feb 10, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
+
+                            <div class="framework-card">
+                                <div class="framework-icon">
+                                    <i class="fas fa-gavel"></i>
+                                </div>
+                                <div class="framework-content">
+                                    <h3>CCPA</h3>
+                                    <div class="compliance-score">
+                                        <div class="circle-progress" data-progress="58">
+                                            <svg viewBox="0 0 36 36">
+                                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <path class="circle" stroke-dasharray="58, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"></path>
+                                                <text x="18" y="20.35" class="percentage">58%</text>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div class="framework-details">
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Applicable:</span>
+                                            <span class="detail-value">12</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Controls Met:</span>
+                                            <span class="detail-value">7</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="detail-label">Last Assessment:</span>
+                                            <span class="detail-value">Jan 15, 2025</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="framework-footer">
+                                    <button class="btn btn-outline">View Details</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="tab-content" id="reports-content">
-                        <!-- Reports content would go here -->
+                        <!-- Compliance reports content would go here -->
                         <div class="placeholder-content">
                             <i class="fas fa-file-alt"></i>
                             <h3>Compliance Reports</h3>
@@ -1154,6 +1406,84 @@
                             <i class="fas fa-history"></i>
                             <h3>Audit Logs</h3>
                             <p>View detailed logs of all security awareness activities</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="remediation-content">
+                        <div class="remediation-dashboard">
+                            <div class="chart-card">
+                                <div class="card-header">
+                                    <h3>Risk Remediation Status</h3>
+                                    <div class="card-actions">
+                                        <div class="dropdown">
+                                            <button class="dropdown-toggle">All Frameworks <i class="fas fa-chevron-down"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div id="remediationStatusChart"></div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Risk Item</th>
+                                            <th>Framework</th>
+                                            <th>Severity</th>
+                                            <th>Status</th>
+                                            <th>Assigned To</th>
+                                            <th>Due Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Inadequate phishing awareness training</td>
+                                            <td>ISO 27001, NIST</td>
+                                            <td><span class="severity-badge high">High</span></td>
+                                            <td><span class="status-badge in-progress">In Progress</span></td>
+                                            <td>Sarah Johnson</td>
+                                            <td>Mar 25, 2025</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn-icon" data-tooltip="View details"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn-icon" data-tooltip="Update status"><i class="fas fa-edit"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Phishing links not being reported</td>
+                                            <td>SOC 2, NIST</td>
+                                            <td><span class="severity-badge medium">Medium</span></td>
+                                            <td><span class="status-badge not-started">Not Started</span></td>
+                                            <td>Michael Chen</td>
+                                            <td>Apr 10, 2025</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn-icon" data-tooltip="View details"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn-icon" data-tooltip="Update status"><i class="fas fa-edit"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Executive team needs advanced training</td>
+                                            <td>GDPR, ISO 27001</td>
+                                            <td><span class="severity-badge high">High</span></td>
+                                            <td><span class="status-badge completed">Completed</span></td>
+                                            <td>John Smith</td>
+                                            <td>Mar 05, 2025</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <button class="btn-icon" data-tooltip="View details"><i class="fas fa-eye"></i></button>
+                                                    <button class="btn-icon" data-tooltip="View evidence"><i class="fas fa-file-alt"></i></button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
@@ -1176,6 +1506,7 @@
 
                     <div class="tabs">
                         <div class="tab active" data-tab="general">General</div>
+                        <div class="tab" data-tab="appearance">Appearance</div>
                         <div class="tab" data-tab="integrations">Integrations</div>
                         <div class="tab" data-tab="notifications">Notifications</div>
                         <div class="tab" data-tab="users">User Management</div>
@@ -1272,6 +1603,67 @@
                         </div>
                     </div>
 
+                    <div class="tab-content" id="appearance-content">
+                        <div class="settings-form">
+                            <div class="form-section">
+                                <h3>Theme Settings</h3>
+                                <div class="form-group">
+                                    <label>Default Theme</label>
+                                    <div class="theme-options">
+                                        <div class="theme-option active" data-theme="light">
+                                            <div class="theme-preview light-theme"></div>
+                                            <span>Light</span>
+                                        </div>
+                                        <div class="theme-option" data-theme="dark">
+                                            <div class="theme-preview dark-theme"></div>
+                                            <span>Dark</span>
+                                        </div>
+                                        <div class="theme-option" data-theme="auto">
+                                            <div class="theme-preview auto-theme"></div>
+                                            <span>Auto (System)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Accent Color</label>
+                                    <div class="color-options">
+                                        <div class="color-option active" style="--color: #1a73e8;" data-color="#1a73e8"></div>
+                                        <div class="color-option" style="--color: #ea4335;" data-color="#ea4335"></div>
+                                        <div class="color-option" style="--color: #34a853;" data-color="#34a853"></div>
+                                        <div class="color-option" style="--color: #fbbc05;" data-color="#fbbc05"></div>
+                                        <div class="color-option" style="--color: #673ab7;" data-color="#673ab7"></div>
+                                        <div class="color-option" style="--color: #ff6d00;" data-color="#ff6d00"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3>Dashboard Layout</h3>
+                                <div class="form-group">
+                                    <label>Default Dashboard View</label>
+                                    <select>
+                                        <option selected>Standard</option>
+                                        <option>Compact</option>
+                                        <option>Expanded</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Show Recent Activities</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="show-activities" checked>
+                                        <label for="show-activities"></label>
+                                        <span class="toggle-label">Enabled</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-buttons">
+                                <button class="btn btn-outline">Reset to Default</button>
+                                <button class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="tab-content" id="integrations-content">
                         <!-- Integrations content would go here -->
                         <div class="placeholder-content">
@@ -1301,6 +1693,11 @@
                 </section>
             </div>
 
+            <!-- Toasts Container -->
+            <div class="toast-container">
+                <!-- Toasts will be added here dynamically -->
+            </div>
+
             <!-- Modal Windows (hidden by default) -->
             <div class="modal" id="new-campaign-modal">
                 <div class="modal-content">
@@ -1321,6 +1718,8 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.5/apexcharts.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.3.0/d3.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
