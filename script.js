@@ -1,3 +1,62 @@
+// GoPhish API Configuration
+const API_BASE_URL = '/api';
+const API_KEY = '62eebca8cceddcfc38bb24b0527ae43d439e8ab0e95f2fdf36ffc9f84fc59528';
+
+// API Helper Function
+async function apiRequest(endpoint, method = 'GET', data = null) {
+    // Add trailing slash if needed
+    if (!endpoint.endsWith('/')) {
+        endpoint = endpoint + '/';
+    }
+    
+    const url = `${API_BASE_URL}/${endpoint}`;
+    
+    const options = {
+        method: method,
+        headers: {
+            'Authorization': API_KEY,
+            'Content-Type': 'application/json'
+        }
+    };
+    
+    if (data && (method === 'POST' || method === 'PUT')) {
+        options.body = JSON.stringify(data);
+    }
+    
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Request Failed:', error);
+        showToast('API Error', error.message, 'error');
+        return null;
+    }
+}
+
+// API Functions for different GoPhish resources
+async function fetchCampaigns() {
+    return await apiRequest('campaigns');
+}
+
+async function fetchGroups() {
+    return await apiRequest('groups');
+}
+
+async function fetchTemplates() {
+    return await apiRequest('templates');
+}
+
+async function fetchLandingPages() {
+    return await apiRequest('pages');
+}
+
+async function fetchSendingProfiles() {
+    return await apiRequest('smtp');
+}
+
 // DOM Elements and Global Variables
 let isDarkMode = false;
 let chartsInitialized = false;
@@ -7,25 +66,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show loading screen
     showLoading();
     
-    // Initialize components with proper timing
-    setTimeout(() => {
-        // Core functionality
-        initTheme();
-        initNavigation();
-        initTabs();
-        initUIInteractions();
+    // Test API connection
+    fetchCampaigns().then(campaigns => {
+        console.log('GoPhish Campaigns:', campaigns);
         
-        // Advanced visualizations
-        initDashboardCharts();
-        initReportCharts();
-        initAdvancedCharts();
+        // Initialize components with proper timing
+        setTimeout(() => {
+            // Core functionality
+            initTheme();
+            initNavigation();
+            initTabs();
+            initUIInteractions();
+            
+            // Advanced visualizations with actual data
+            initDashboardCharts(campaigns);
+            
+            // Hide loading screen
+            hideLoading();
+            
+            // Show welcome toast
+            showToast('Welcome to PhishGuard', 'Connected to GoPhish API successfully', 'success');
+        }, 800);
+    }).catch(error => {
+        console.error('API Error:', error);
         
-        // Hide loading screen
-        hideLoading();
-        
-        // Show welcome toast
-        showToast('Welcome to PhishGuard', 'Security awareness platform loaded successfully', 'success');
-    }, 800);
+        // Continue initialization even if API fails
+        setTimeout(() => {
+            // Core functionality
+            initTheme();
+            initNavigation();
+            initTabs();
+            initUIInteractions();
+            
+            // Initialize charts with no data
+            initDashboardCharts(null);
+            
+            // Hide loading screen
+            hideLoading();
+            
+            // Show error toast
+            showToast('API Connection Error', 'Could not connect to GoPhish API', 'error');
+        }, 800);
+    });
 });
 
 // Loading Management
@@ -232,11 +314,13 @@ function initTabs() {
                         setTimeout(() => {
                             content.classList.remove('active');
                             const newActiveContent = parentSection.querySelector(`#${targetContent}-content`);
-                            newActiveContent.classList.add('active');
-                            newActiveContent.style.opacity = '0';
-                            setTimeout(() => {
-                                newActiveContent.style.opacity = '1';
-                            }, 50);
+                            if (newActiveContent) {
+                                newActiveContent.classList.add('active');
+                                newActiveContent.style.opacity = '0';
+                                setTimeout(() => {
+                                    newActiveContent.style.opacity = '1';
+                                }, 50);
+                            }
                         }, 200);
                     }
                 });
@@ -245,23 +329,201 @@ function initTabs() {
     });
 }
 
-// Advanced Dashboard Charts
-function initDashboardCharts() {
-    initSecurityPostureGauge();
-    initCampaignPerformanceChart();
-    initVulnerabilityChart();
-    initTrainingFunnelChart();
+// Update campaigns table with real data
+function updateCampaignsTable(campaigns) {
+    console.log("Complete campaign data:", JSON.stringify(campaigns, null, 2));
+    console.log("Updating campaigns table with:", campaigns);
+    const tableBody = document.querySelector('#active-campaigns-content .data-table tbody');
     
-    // Mark charts as initialized
-    chartsInitialized = true;
+    if (!tableBody || !campaigns) return;
+    
+    // Clear existing rows
+    tableBody.innerHTML = '';
+    
+    // Add data rows
+    if (campaigns.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = `<td colspan="8" style="text-align: center;">No active campaigns found</td>`;
+        tableBody.appendChild(emptyRow);
+    } else {
+        campaigns.forEach(campaign => {
+            const row = document.createElement('tr');
+            
+            // Calculate progress based on time
+            let progress = 0;
+            if (campaign.launch_date) {
+                const start = new Date(campaign.launch_date);
+                const now = new Date();
+                const elapsed = now - start;
+                const daysSinceStart = elapsed / (1000 * 60 * 60 * 24);
+                // Assume a 30-day campaign by default
+                progress = Math.min(100, Math.max(0, Math.round(daysSinceStart / 30 * 100)));
+            }
+            
+            // Calculate success rate if stats exist
+            let successRate = '0%';
+            if (campaign.stats) {
+                const sent = campaign.stats.sent || 0;
+                const clicked = campaign.stats.clicked || 0;
+                successRate = sent > 0 ? `${((clicked / sent) * 100).toFixed(1)}%` : '0%';
+            }
+            
+            // Format dates
+            const startDate = campaign.launch_date ? new Date(campaign.launch_date).toLocaleDateString() : 'N/A';
+            // Use completed_date if available, otherwise assume 30 days after launch
+            let endDate = 'Ongoing';
+            if (campaign.completed_date) {
+                endDate = new Date(campaign.completed_date).toLocaleDateString();
+            } else if (campaign.launch_date) {
+                const endDateObj = new Date(campaign.launch_date);
+                endDateObj.setDate(endDateObj.getDate() + 30);
+                endDate = endDateObj.toLocaleDateString();
+            }
+            
+            row.innerHTML = `
+                <td>${campaign.name}</td>
+                <td>${campaign.groups && campaign.groups.length > 0 ? campaign.groups.map(g => g.name).join(', ') : 'All Users'}</td>
+                <td><span class="status-badge in-progress">In Progress</span></td>
+                <td>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="progress-text">${progress}%</div>
+                </td>
+                <td>${startDate}</td>
+                <td>${endDate}</td>
+                <td>${successRate}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon" title="View Details" data-tooltip="View campaign details"><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon" title="Edit Campaign" data-tooltip="Edit campaign settings"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon" title="Pause Campaign" data-tooltip="Pause campaign"><i class="fas fa-pause"></i></button>
+                    </div>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+    }
 }
 
-function initSecurityPostureGauge() {
+// Advanced Dashboard Charts
+async function initDashboardCharts(campaigns) {
+    try {
+        // If campaigns weren't passed in, try to fetch them
+        if (!campaigns) {
+            campaigns = await fetchCampaigns();
+            console.log('Fetched campaigns:', campaigns);
+        }
+        
+        // Update campaign table with real data
+        updateCampaignsTable(campaigns);
+        
+        // Update dashboard metrics with real data if available
+        if (campaigns && campaigns.length > 0) {
+            updateDashboardMetrics(campaigns);
+        }
+        
+        // Only initialize charts if the elements exist
+        const securityPostureGauge = document.getElementById('securityPostureGauge');
+        if (securityPostureGauge) {
+            initSecurityPostureGauge(campaigns);
+        }
+        
+        const campaignPerformanceChart = document.getElementById('campaignPerformanceChart');
+        if (campaignPerformanceChart) {
+            initCampaignPerformanceChart(campaigns);
+        }
+        
+        const vulnerabilityChart = document.getElementById('vulnerabilityChart');
+        if (vulnerabilityChart) {
+            initVulnerabilityChart(campaigns);
+        }
+        
+        const trainingFunnelChart = document.getElementById('trainingFunnelChart');
+        if (trainingFunnelChart) {
+            initTrainingFunnelChart();
+        }
+        
+        // Mark charts as initialized
+        chartsInitialized = true;
+    } catch (error) {
+        console.error('Failed to initialize dashboard:', error);
+        showToast('Error', 'Failed to load dashboard data', 'error');
+    }
+}
+
+// Helper function to update metrics with real data
+function updateDashboardMetrics(campaigns) {
+    // Update active campaigns count
+    const activeCampaignsMetric = document.querySelector('.metric-card:nth-child(1) .metric-value');
+    if (activeCampaignsMetric) {
+        const activeCampaigns = campaigns.filter(c => c.status === 'In progress' || !c.completed_date);
+        activeCampaignsMetric.textContent = activeCampaigns.length.toString();
+    }
+    
+    // Update phishing success rate if data available
+    const phishingRateMetric = document.querySelector('.metric-card:nth-child(2) .metric-value');
+    if (phishingRateMetric && campaigns.length > 0) {
+        let totalSent = 0;
+        let totalClicked = 0;
+        
+        campaigns.forEach(campaign => {
+            if (campaign.stats) {
+                totalSent += campaign.stats.sent || 0;
+                totalClicked += campaign.stats.clicked || 0;
+            }
+        });
+        
+        if (totalSent > 0) {
+            const clickRate = (totalClicked / totalSent * 100).toFixed(1);
+            phishingRateMetric.textContent = clickRate + '%';
+        }
+    }
+    
+    // Update training completion if available 
+    const trainingMetric = document.querySelector('.metric-card:nth-child(3) .metric-value');
+    if (trainingMetric) {
+        // Reset to zero since we don't have real training data yet
+        trainingMetric.textContent = '0%';
+    }
+    
+    // Update risk score if available
+    const riskMetric = document.querySelector('.metric-card:nth-child(4) .metric-value');
+    if (riskMetric) {
+        // Real risk score calculation would go here
+        // For now, keep it at the default value
+    }
+}
+
+function initSecurityPostureGauge(campaigns) {
     const element = document.getElementById('securityPostureGauge');
     if (!element) return;
+
+    // Calculate a score based on campaign data or use a default value
+    let score = 50; // default score
     
+    if (campaigns && campaigns.length > 0) {
+        // Simple scoring example: based on click rates
+        let totalSent = 0;
+        let totalClicked = 0;
+        
+        campaigns.forEach(campaign => {
+            if (campaign.stats) {
+                totalSent += campaign.stats.sent || 0;
+                totalClicked += campaign.stats.clicked || 0;
+            }
+        });
+        
+        if (totalSent > 0) {
+            const clickRate = (totalClicked / totalSent) * 100;
+            // Higher click rate = lower security score
+            score = Math.max(10, Math.min(90, 100 - clickRate));
+        }
+    }
+
     const options = {
-        series: [72],
+        series: [Math.round(score)],
         chart: {
             height: 250,
             type: 'radialBar',
@@ -337,30 +599,99 @@ function initSecurityPostureGauge() {
         }
     };
 
-    const chart = new ApexCharts(element, options);
-    chart.render();
-    
-    // Add animation
-    setTimeout(() => {
-        chart.updateSeries([72]);
-    }, 500);
+    try {
+        const chart = new ApexCharts(element, options);
+        chart.render();
+        
+        // Add animation
+        setTimeout(() => {
+            chart.updateSeries([Math.round(score)]);
+        }, 500);
+    } catch (error) {
+        console.error('Error rendering Security Posture Gauge:', error);
+    }
 }
 
-function initCampaignPerformanceChart() {
+function initCampaignPerformanceChart(campaigns) {
     const element = document.getElementById('campaignPerformanceChart');
     if (!element) return;
     
-    const options = {
-        series: [
+    // Default empty data
+    let seriesData = [
+        {
+            name: 'Click Rate',
+            data: []
+        },
+        {
+            name: 'Report Rate',
+            data: []
+        }
+    ];
+    
+    let categories = [];
+    
+    // If we have campaign data, use it
+    if (campaigns && campaigns.length > 0) {
+        // Sort campaigns by date
+        const sortedCampaigns = [...campaigns].sort((a, b) => {
+            return new Date(a.launch_date) - new Date(b.launch_date);
+        });
+        
+        // Take up to 6 most recent campaigns
+        const recentCampaigns = sortedCampaigns.slice(-6);
+        
+        const clickRates = recentCampaigns.map(campaign => {
+            if (campaign.stats && campaign.stats.sent > 0) {
+                return parseFloat(((campaign.stats.clicked / campaign.stats.sent) * 100).toFixed(1));
+            }
+            return 0;
+        });
+        
+        const reportRates = recentCampaigns.map(campaign => {
+            if (campaign.stats && campaign.stats.sent > 0) {
+                return parseFloat(((campaign.stats.reported / campaign.stats.sent) * 100).toFixed(1));
+            }
+            return 0;
+        });
+        
+        // Only use real data if we have points
+        if (clickRates.length > 0) {
+            seriesData = [
+                {
+                    name: 'Click Rate',
+                    data: clickRates
+                },
+                {
+                    name: 'Report Rate',
+                    data: reportRates
+                }
+            ];
+            
+            // Use campaign names for categories
+            categories = recentCampaigns.map(c => {
+                // Truncate long names
+                return c.name.length > 10 ? c.name.substring(0, 10) + '...' : c.name;
+            });
+        }
+    }
+    
+    // If no campaigns, show empty state
+    if (categories.length === 0) {
+        categories = ['No Data'];
+        seriesData = [
             {
                 name: 'Click Rate',
-                data: [32, 29, 25, 20, 18, 15]
+                data: [0]
             },
             {
                 name: 'Report Rate',
-                data: [5, 8, 12, 18, 25, 32]
+                data: [0]
             }
-        ],
+        ];
+    }
+    
+    const options = {
+        series: seriesData,
         chart: {
             type: 'area',
             height: 350,
@@ -397,7 +728,7 @@ function initCampaignPerformanceChart() {
             }
         },
         xaxis: {
-            categories: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
+            categories: categories,
             labels: {
                 style: {
                     colors: isDarkMode ? '#e0e0e0' : '#333333'
@@ -434,18 +765,23 @@ function initCampaignPerformanceChart() {
         }
     };
 
-    const chart = new ApexCharts(element, options);
-    chart.render();
+    try {
+        const chart = new ApexCharts(element, options);
+        chart.render();
+    } catch (error) {
+        console.error('Error rendering Campaign Performance Chart:', error);
+    }
 }
 
 function initVulnerabilityChart() {
     const element = document.getElementById('vulnerabilityChart');
     if (!element) return;
     
+    // We don't have real department data yet, so keeping this minimal
     const options = {
         series: [{
             name: 'Vulnerability Score',
-            data: [25, 12, 18, 27, 35, 28]
+            data: [0, 0, 0, 0, 0, 0]
         }],
         chart: {
             type: 'bar',
@@ -514,19 +850,24 @@ function initVulnerabilityChart() {
         }
     };
 
-    const chart = new ApexCharts(element, options);
-    chart.render();
+    try {
+        const chart = new ApexCharts(element, options);
+        chart.render();
+    } catch (error) {
+        console.error('Error rendering Vulnerability Chart:', error);
+    }
 }
 
 function initTrainingFunnelChart() {
     const element = document.getElementById('trainingFunnelChart');
     if (!element) return;
     
+    // No real training data yet, so using 0s
     const options = {
         series: [
             {
                 name: 'Employees',
-                data: [500, 400, 350, 300, 250]
+                data: [0, 0, 0, 0, 0]
             }
         ],
         chart: {
@@ -605,815 +946,35 @@ function initTrainingFunnelChart() {
         }
     };
 
-    const chart = new ApexCharts(element, options);
-    chart.render();
-}
-
-// Advanced Charts for Reports
-function initReportCharts() {
-    if (document.getElementById('campaignEffectivenessChart')) {
-        const effectivenessCtx = document.getElementById('campaignEffectivenessChart');
-        new ApexCharts(effectivenessCtx, {
-            series: [
-                {
-                    name: 'Phishing Success Rate',
-                    data: [38, 35, 32, 28, 25, 22, 18, 15]
-                },
-                {
-                    name: 'Training Effectiveness',
-                    data: [40, 45, 50, 60, 65, 70, 78, 82]
-                }
-            ],
-            chart: {
-                type: 'area',
-                height: 350,
-                toolbar: {
-                    show: true
-                },
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 3
-            },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    opacityFrom: 0.3,
-                    opacityTo: 0.1
-                }
-            },
-            colors: ['#ea4335', '#34a853'],
-            xaxis: {
-                categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
-                labels: {
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            yaxis: {
-                labels: {
-                    formatter: function(val) {
-                        return val + '%';
-                    },
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light'
-            },
-            grid: {
-                borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-            },
-            legend: {
-                position: 'top',
-                horizontalAlign: 'right',
-                labels: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        }).render();
+    try {
+        const chart = new ApexCharts(element, options);
+        chart.render();
+    } catch (error) {
+        console.error('Error rendering Training Funnel Chart:', error);
     }
-    
-    if (document.getElementById('attackVectorChart')) {
-        const vectorCtx = document.getElementById('attackVectorChart');
-        new ApexCharts(vectorCtx, {
-            series: [
-                {
-                    name: 'Success Rate',
-                    data: [65, 40, 35, 50, 75, 45]
-                }
-            ],
-            chart: {
-                type: 'radar',
-                height: 350,
-                toolbar: {
-                    show: false
-                },
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            xaxis: {
-                categories: ['Password Reset', 'Account Alert', 'Invoice', 'Shared Document', 'Executive Request', 'IT Support'],
-                labels: {
-                    style: {
-                        colors: Array(6).fill(isDarkMode ? '#e0e0e0' : '#333333')
-                    }
-                }
-            },
-            yaxis: {
-                labels: {
-                    formatter: function(val) {
-                        return val + '%';
-                    },
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            fill: {
-                opacity: 0.2
-            },
-            stroke: {
-                width: 3
-            },
-            markers: {
-                size: 5
-            },
-            dataLabels: {
-                enabled: true,
-                background: {
-                    enabled: true,
-                    borderRadius: 2
-                }
-            },
-            colors: ['#4285f4'],
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light',
-                y: {
-                    formatter: function(val) {
-                        return val + '% success rate';
-                    }
-                }
-            },
-            grid: {
-                borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-            }
-        }).render();
-    }
-    
-    if (document.getElementById('riskScoreChart')) {
-        const riskCtx = document.getElementById('riskScoreChart');
-        new ApexCharts(riskCtx, {
-            series: [
-                {
-                    name: 'Risk Score',
-                    data: [78, 75, 70, 68, 65, 62]
-                }
-            ],
-            chart: {
-                type: 'line',
-                height: 350,
-                toolbar: {
-                    show: false
-                },
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            stroke: {
-                curve: 'straight',
-                width: 3
-            },
-            annotations: {
-                yaxis: [
-                    {
-                        y: 70,
-                        borderColor: '#fbbc05',
-                        label: {
-                            text: 'Warning Threshold',
-                            style: {
-                                color: '#fff',
-                                background: '#fbbc05'
-                            }
-                        }
-                    }
-                ]
-            },
-            markers: {
-                size: 5
-            },
-            colors: ['#fbbc05'],
-            xaxis: {
-                categories: ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'],
-                labels: {
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            yaxis: {
-                min: 50,
-                max: 100,
-                labels: {
-                    formatter: function(val) {
-                        return val.toFixed(0);
-                    },
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light'
-            },
-            grid: {
-                borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-            }
-        }).render();
-    }
-    
-    if (document.getElementById('trainingEffectivenessChart')) {
-        const trainingEffCtx = document.getElementById('trainingEffectivenessChart');
-        new ApexCharts(trainingEffCtx, {
-            series: [
-                {
-                    name: 'Before Training',
-                    data: [65, 55, 70, 60]
-                },
-                {
-                    name: 'After Training',
-                    data: [25, 20, 35, 30]
-                }
-            ],
-            chart: {
-                type: 'bar',
-                height: 350,
-                toolbar: {
-                    show: false
-                },
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    borderRadius: 5
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            legend: {
-                position: 'top',
-                horizontalAlign: 'right',
-                labels: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            },
-            stroke: {
-                show: true,
-                width: 2,
-                colors: ['transparent']
-            },
-            xaxis: {
-                categories: ['Phishing Basics', 'Password Security', 'Social Engineering', 'Mobile Security'],
-                labels: {
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            yaxis: {
-                max: 100,
-                labels: {
-                    formatter: function(val) {
-                        return val + '%';
-                    },
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            fill: {
-                opacity: 1
-            },
-            colors: ['#ea4335', '#34a853'],
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light',
-                y: {
-                    formatter: function(val) {
-                        return val + '% vulnerability';
-                    }
-                }
-            },
-            grid: {
-                borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-            }
-        }).render();
-    }
-    
-    if (document.getElementById('departmentComparisonChart')) {
-        const deptCtx = document.getElementById('departmentComparisonChart');
-        new ApexCharts(deptCtx, {
-            series: [
-                {
-                    name: 'Oct 2024',
-                    data: [42, 18, 35, 48, 55, 38]
-                },
-                {
-                    name: 'Mar 2025',
-                    data: [25, 8, 20, 30, 35, 22]
-                }
-            ],
-            chart: {
-                type: 'bar',
-                height: 350,
-                toolbar: {
-                    show: false
-                },
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    borderRadius: 5
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            legend: {
-                position: 'top',
-                horizontalAlign: 'right',
-                labels: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            },
-            stroke: {
-                show: true,
-                width: 2,
-                colors: ['transparent']
-            },
-            xaxis: {
-                categories: ['Executive', 'IT', 'Finance', 'HR', 'Marketing', 'Sales'],
-                labels: {
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            yaxis: {
-                max: 100,
-                labels: {
-                    formatter: function(val) {
-                        return val + '%';
-                    },
-                    style: {
-                        colors: isDarkMode ? '#e0e0e0' : '#333333'
-                    }
-                }
-            },
-            fill: {
-                opacity: 1
-            },
-            colors: ['#4285f4', '#34a853'],
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light',
-                y: {
-                    formatter: function(val) {
-                        return val + '%';
-                    }
-                }
-            },
-            grid: {
-                borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-            }
-        }).render();
-    }
-    
-    if (document.getElementById('remediationStatusChart')) {
-        const remediationCtx = document.getElementById('remediationStatusChart');
-        new ApexCharts(remediationCtx, {
-            series: [40, 30, 20, 10],
-            chart: {
-                type: 'donut',
-                height: 350,
-                foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-            },
-            labels: ['Completed', 'In Progress', 'Not Started', 'Overdue'],
-            colors: ['#34a853', '#4285f4', '#aaaaaa', '#ea4335'],
-            plotOptions: {
-                pie: {
-                    donut: {
-                        size: '60%',
-                        labels: {
-                            show: true,
-                            total: {
-                                show: true,
-                                label: 'Total Issues',
-                                formatter: function (w) {
-                                    return w.globals.seriesTotals.reduce((a, b) => {
-                                        return a + b;
-                                    }, 0);
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            legend: {
-                position: 'bottom',
-                labels: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            },
-            tooltip: {
-                theme: isDarkMode ? 'dark' : 'light',
-                y: {
-                    formatter: function(val) {
-                        return val + ' issues';
-                    }
-                }
-            },
-            responsive: [
-                {
-                    breakpoint: 480,
-                    options: {
-                        chart: {
-                            height: 250
-                        },
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            ]
-        }).render();
-    }
-}
-
-// Advanced Visualization Charts
-function initAdvancedCharts() {
-    initPhishingHeatmapChart();
-    initAttackVectorNetworkChart();
-}
-
-function initPhishingHeatmapChart() {
-    const element = document.getElementById('phishingHeatmapChart');
-    if (!element) return;
-    
-    // Generate data for the heatmap
-    function generateData(count, yrange) {
-        let i = 0;
-        let series = [];
-        
-        // Departments
-        const departments = [
-            'Executive', 
-            'IT', 
-            'Finance', 
-            'HR', 
-            'Marketing', 
-            'Sales'
-        ];
-        
-        // Higher click rates for executives
-        const departmentMultipliers = {
-            'Executive': 1.5,
-            'IT': 0.5,
-            'Finance': 1.2,
-            'HR': 0.8,
-            'Marketing': 1.3,
-            'Sales': 1.1
-        };
-        
-        while (i < count) {
-            let week = i + 1;
-            
-            departments.forEach((dept, index) => {
-                // Generate a click rate that trends downward over time
-                // but varies by department based on multipliers
-                let baseVal = Math.max(5, 30 - (i * 0.8));
-                let mult = departmentMultipliers[dept];
-                let y = baseVal * mult;
-                
-                // Add randomness
-                y = y + (Math.random() * 10 - 5);
-                y = Math.max(2, Math.min(y, 65));
-                
-                series.push({
-                    x: `Week ${week}`,
-                    y: dept,
-                    value: Math.round(y)
-                });
-            });
-            i++;
-        }
-        return series;
-    }
-
-    const options = {
-        series: [
-            {
-                name: 'Click Rate %',
-                data: generateData(12, {
-                    min: 0,
-                    max: 60
-                })
-            }
-        ],
-        chart: {
-            height: 400,
-            type: 'heatmap',
-            toolbar: {
-                show: true
-            },
-            animations: {
-                enabled: true,
-                easing: 'easeinout',
-                speed: 800,
-                animateGradually: {
-                    enabled: true,
-                    delay: 150
-                },
-                dynamicAnimation: {
-                    enabled: true,
-                    speed: 350
-                }
-            },
-            foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        dataLabels: {
-            enabled: true,
-            style: {
-                colors: ['#fff']
-            }
-        },
-        colors: ["#1a73e8"],
-        title: {
-            text: 'Phishing Click Rate by Department and Time',
-            align: 'center',
-            style: {
-                color: isDarkMode ? '#e0e0e0' : '#333333'
-            }
-        },
-        tooltip: {
-            theme: isDarkMode ? 'dark' : 'light',
-            y: {
-                formatter: function(val) {
-                    return val + '% click rate';
-                }
-            }
-        },
-        plotOptions: {
-            heatmap: {
-                shadeIntensity: 0.5,
-                radius: 0,
-                useFillColorAsStroke: true,
-                colorScale: {
-                    ranges: [
-                        {
-                            from: 0,
-                            to: 10,
-                            name: 'Low',
-                            color: '#34a853'
-                        },
-                        {
-                            from: 11,
-                            to: 25,
-                            name: 'Medium',
-                            color: '#fbbc05'
-                        },
-                        {
-                            from: 26,
-                            to: 40,
-                            name: 'High',
-                            color: '#ea4335'
-                        },
-                        {
-                            from: 41,
-                            to: 100,
-                            name: 'Critical',
-                            color: '#990000'
-                        }
-                    ]
-                }
-            }
-        },
-        xaxis: {
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        yaxis: {
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        stroke: {
-            width: 1
-        },
-        grid: {
-            borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-        }
-    };
-
-    const chart = new ApexCharts(element, options);
-    chart.render();
-}
-
-function initAttackVectorNetworkChart() {
-    const element = document.getElementById('attackVectorNetworkChart');
-    if (!element) return;
-    
-    // Create network graph using D3.js
-    const width = element.clientWidth;
-    const height = 400;
-    
-    // Create the SVG container
-    const svg = d3.select(element)
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height);
-    
-    // Define the data for nodes and links
-    const nodes = [
-        // Attack vectors (source nodes)
-        { id: 1, name: "Password Reset Emails", type: "attack", value: 65 },
-        { id: 2, name: "Account Alerts", type: "attack", value: 40 },
-        { id: 3, name: "Invoice Emails", type: "attack", value: 35 },
-        { id: 4, name: "Shared Documents", type: "attack", value: 50 },
-        { id: 5, name: "Executive Requests", type: "attack", value: 75 },
-        { id: 6, name: "IT Support", type: "attack", value: 45 },
-        
-        // Departments (target nodes)
-        { id: 7, name: "Executive", type: "dept" },
-        { id: 8, name: "IT", type: "dept" },
-        { id: 9, name: "Finance", type: "dept" },
-        { id: 10, name: "HR", type: "dept" },
-        { id: 11, name: "Marketing", type: "dept" },
-        { id: 12, name: "Sales", type: "dept" }
-    ];
-    
-    const links = [
-        // Password Reset targets
-        { source: 1, target: 7, value: 25 },
-        { source: 1, target: 8, value: 12 },
-        { source: 1, target: 9, value: 18 },
-        { source: 1, target: 10, value: 20 },
-        { source: 1, target: 11, value: 30 },
-        { source: 1, target: 12, value: 25 },
-        
-        // Account Alerts targets
-        { source: 2, target: 7, value: 15 },
-        { source: 2, target: 9, value: 35 },
-        { source: 2, target: 12, value: 20 },
-        
-        // Invoice Emails targets
-        { source: 3, target: 7, value: 10 },
-        { source: 3, target: 9, value: 40 },
-        { source: 3, target: 11, value: 5 },
-        
-        // Shared Documents targets
-        { source: 4, target: 7, value: 30 },
-        { source: 4, target: 8, value: 10 },
-        { source: 4, target: 10, value: 20 },
-        { source: 4, target: 11, value: 25 },
-        
-        // Executive Requests targets
-        { source: 5, target: 7, value: 45 },
-        { source: 5, target: 9, value: 25 },
-        { source: 5, target: 11, value: 15 },
-        { source: 5, target: 12, value: 20 },
-        
-        // IT Support targets
-        { source: 6, target: 7, value: 20 },
-        { source: 6, target: 8, value: 5 },
-        { source: 6, target: 10, value: 30 },
-        { source: 6, target: 12, value: 15 }
-    ];
-    
-    // Create a force simulation
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-300))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("x", d3.forceX(width / 2).strength(0.1))
-        .force("y", d3.forceY(height / 2).strength(0.1));
-    
-    // Define color scale for nodes
-    const nodeColorScale = d3.scaleOrdinal()
-        .domain(["attack", "dept"])
-        .range([isDarkMode ? "#4285f4" : "#1a73e8", isDarkMode ? "#ea4335" : "#ea4335"]);
-    
-    // Define color and width scales for links
-    const linkColorScale = d3.scaleLinear()
-        .domain([0, 45])
-        .range([isDarkMode ? "#444444" : "#999999", isDarkMode ? "#ff5252" : "#ea4335"]);
-    
-    const linkWidthScale = d3.scaleLinear()
-        .domain([0, 45])
-        .range([1, 5]);
-    
-    // Create the links
-    const link = svg.append("g")
-        .attr("stroke-opacity", 0.6)
-        .selectAll("line")
-        .data(links)
-        .enter().append("line")
-        .attr("stroke", d => linkColorScale(d.value))
-        .attr("stroke-width", d => linkWidthScale(d.value));
-    
-    // Create the nodes
-    const node = svg.append("g")
-        .selectAll("g")
-        .data(nodes)
-        .enter().append("g")
-        .call(d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended));
-    
-    // Add circles to nodes
-    node.append("circle")
-        .attr("r", d => d.type === "attack" ? 10 + (d.value / 10) : 8)
-        .attr("fill", d => nodeColorScale(d.type))
-        .attr("stroke", isDarkMode ? "#333" : "#fff")
-        .attr("stroke-width", 1.5);
-    
-    // Add text labels to nodes
-    node.append("text")
-        .attr("dx", d => d.type === "attack" ? 15 : 12)
-        .attr("dy", ".35em")
-        .text(d => d.name)
-        .style("font-size", "12px")
-        .style("fill", isDarkMode ? "#e0e0e0" : "#333");
-    
-    // Update positions in the simulation
-    simulation.on("tick", () => {
-        link
-            .attr("x1", d => d.source.x)
-            .attr("y1", d => d.source.y)
-            .attr("x2", d => d.target.x)
-            .attr("y2", d => d.target.y);
-        
-        node.attr("transform", d => `translate(${d.x},${d.y})`);
-    });
-    
-    // Define drag functions
-    function dragstarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-    }
-    
-    function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-    }
-    
-    function dragended(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-    }
-    
-    // Create a legend
-    const legend = svg.append("g")
-        .attr("transform", "translate(20,20)");
-    
-    // Attack vector legend item
-    legend.append("circle")
-        .attr("r", 6)
-        .attr("fill", nodeColorScale("attack"))
-        .attr("stroke", isDarkMode ? "#333" : "#fff")
-        .attr("stroke-width", 1.5);
-    
-    legend.append("text")
-        .attr("x", 15)
-        .attr("y", 4)
-        .text("Attack Vector")
-        .style("font-size", "12px")
-        .style("fill", isDarkMode ? "#e0e0e0" : "#333");
-    
-    // Department legend item
-    legend.append("circle")
-        .attr("r", 6)
-        .attr("cy", 25)
-        .attr("fill", nodeColorScale("dept"))
-        .attr("stroke", isDarkMode ? "#333" : "#fff")
-        .attr("stroke-width", 1.5);
-    
-    legend.append("text")
-        .attr("x", 15)
-        .attr("y", 29)
-        .text("Department")
-        .style("font-size", "12px")
-        .style("fill", isDarkMode ? "#e0e0e0" : "#333");
 }
 
 // Update chart themes when dark mode changes
 function updateChartsTheme() {
-    // Recreate all charts with the new theme
-    initDashboardCharts();
-    initReportCharts();
-    initAdvancedCharts();
+    // Recreate charts with the new theme
+    fetchCampaigns().then(campaigns => {
+        initDashboardCharts(campaigns);
+    }).catch(error => {
+        console.error('Failed to fetch campaigns for theme update:', error);
+        initDashboardCharts(null);
+    });
 }
 
 // UI Interactions
 function initUIInteractions() {
+    // Connect New Campaign button to the campaign creation modal
+    const newCampaignBtn = document.querySelector('.btn.btn-primary.pulsate-once');
+    if (newCampaignBtn) {
+        newCampaignBtn.addEventListener('click', function() {
+            showCampaignModal();
+        });
+    }
+
     // Email Simulator - Template Selection
     const templateItems = document.querySelectorAll('.template-item');
     templateItems.forEach(item => {
@@ -1472,6 +1033,222 @@ function initUIInteractions() {
     initNotificationInteractions();
 }
 
+// Show Campaign Modal
+function showCampaignModal() {
+    // First, check if the modal exists
+    const modal = document.getElementById('new-campaign-modal');
+    if (!modal) {
+        // Create a modal if it doesn't exist
+        createCampaignModal();
+    } else {
+        // Show the existing modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Create Campaign Modal
+function createCampaignModal() {
+    // First fetch groups and templates for the form
+    Promise.all([fetchGroups(), fetchTemplates(), fetchLandingPages(), fetchSendingProfiles()])
+        .then(([groups, templates, pages, profiles]) => {
+            // Create modal HTML
+            const modalHtml = `
+                <div class="modal" id="new-campaign-modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Create New Campaign</h2>
+                            <button class="close-modal"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="new-campaign-form">
+                                <div class="form-group">
+                                    <label for="campaign-name">Campaign Name</label>
+                                    <input type="text" id="campaign-name" name="name" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="campaign-group">Target Group</label>
+                                    <select id="campaign-group" name="group" required>
+                                        <option value="">Select a group</option>
+                                        ${groups && groups.map(group => `
+                                            <option value="${group.id}">${group.name}</option>
+                                        `).join('') || ''}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="campaign-template">Email Template</label>
+                                    <select id="campaign-template" name="template" required>
+                                        <option value="">Select a template</option>
+                                        ${templates && templates.map(template => `
+                                            <option value="${template.id}">${template.name}</option>
+                                        `).join('') || ''}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="campaign-page">Landing Page</label>
+                                    <select id="campaign-page" name="page" required>
+                                        <option value="">Select a landing page</option>
+                                        ${pages && pages.map(page => `
+                                            <option value="${page.id}">${page.name}</option>
+                                        `).join('') || ''}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="campaign-profile">Sending Profile</label>
+                                    <select id="campaign-profile" name="profile" required>
+                                        <option value="">Select a sending profile</option>
+                                        ${profiles && profiles.map(profile => `
+                                            <option value="${profile.id}">${profile.name}</option>
+                                        `).join('') || ''}
+                                    </select>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="campaign-launch-date">Launch Date</label>
+                                        <input type="date" id="campaign-launch-date" name="launch_date" required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="campaign-launch-time">Launch Time</label>
+                                        <input type="time" id="campaign-launch-time" name="launch_time" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-outline" id="cancel-campaign">Cancel</button>
+                            <button class="btn btn-primary" id="create-campaign">Create Campaign</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to the DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            
+            // Add event listeners
+            initModalFunctionality();
+            
+            // Show the modal
+            const modal = document.getElementById('new-campaign-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // Set default launch date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const launchDateInput = document.getElementById('campaign-launch-date');
+                if (launchDateInput) {
+                    launchDateInput.valueAsDate = tomorrow;
+                }
+                
+                // Add form submission handler
+                const createBtn = document.getElementById('create-campaign');
+                const cancelBtn = document.getElementById('cancel-campaign');
+                
+                if (createBtn) {
+                    createBtn.addEventListener('click', handleCampaignSubmit);
+                }
+                
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function() {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching data for campaign modal:', error);
+            showToast('Error', 'Failed to load campaign form data', 'error');
+        });
+}
+
+// Handle Campaign Form Submission
+function handleCampaignSubmit() {
+    const form = document.getElementById('new-campaign-form');
+    if (!form) return;
+    
+    // Validate form
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Get form data
+    const name = document.getElementById('campaign-name').value;
+    const groupId = document.getElementById('campaign-group').value;
+    const templateId = document.getElementById('campaign-template').value;
+    const pageId = document.getElementById('campaign-page').value;
+    const profileId = document.getElementById('campaign-profile').value;
+    const launchDate = document.getElementById('campaign-launch-date').value;
+    const launchTime = document.getElementById('campaign-launch-time').value;
+    
+    // Combine date and time
+    const launchDateTime = new Date(`${launchDate}T${launchTime}`);
+    
+    // Prepare campaign data
+    const campaignData = {
+        name: name,
+        groups: [{ id: parseInt(groupId) }],
+        template: { id: parseInt(templateId) },
+        page: { id: parseInt(pageId) },
+        smtp: { id: parseInt(profileId) },
+        launch_date: launchDateTime.toISOString()
+    };
+    
+    // Show loading
+    showLoading();
+    
+    // Submit to API
+    apiRequest('campaigns', 'POST', campaignData)
+        .then(response => {
+            hideLoading();
+            
+            // Close modal
+            const modal = document.getElementById('new-campaign-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Show success message
+            showToast('Success', 'Campaign created successfully', 'success');
+            
+            // Refresh campaign data
+            refreshCampaigns();
+        })
+        .catch(error => {
+            hideLoading();
+            console.error('Error creating campaign:', error);
+            showToast('Error', 'Failed to create campaign', 'error');
+        });
+}
+
+// Function to create a new campaign
+async function createCampaign(campaignData) {
+    return await apiRequest('campaigns', 'POST', campaignData);
+}
+
+// Refresh Campaigns
+function refreshCampaigns() {
+    fetchCampaigns()
+        .then(campaigns => {
+            updateCampaignsTable(campaigns);
+            updateDashboardMetrics(campaigns);
+        })
+        .catch(error => {
+            console.error('Error refreshing campaigns:', error);
+        });
+}
+
 // Animate progress bars
 function animateProgressBars() {
     const progressBars = document.querySelectorAll('.progress-bar .progress');
@@ -1492,11 +1269,13 @@ function animateCircleProgress() {
         const progress = circle.getAttribute('data-progress');
         const circlePath = circle.querySelector('.circle');
         
-        circlePath.style.strokeDasharray = '0, 100';
-        setTimeout(() => {
-            circlePath.style.transition = 'stroke-dasharray 1.5s ease-in-out';
-            circlePath.style.strokeDasharray = `${progress}, 100`;
-        }, 500);
+        if (circlePath) {
+            circlePath.style.strokeDasharray = '0, 100';
+            setTimeout(() => {
+                circlePath.style.transition = 'stroke-dasharray 1.5s ease-in-out';
+                circlePath.style.strokeDasharray = `${progress}, 100`;
+            }, 500);
+        }
     });
 }
 
@@ -1578,8 +1357,10 @@ function initModalFunctionality() {
     document.querySelectorAll('.close-modal').forEach(closeBtn => {
         closeBtn.addEventListener('click', function() {
             const modal = this.closest('.modal');
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         });
     });
     
@@ -1642,254 +1423,8 @@ function removeToast(toast) {
     toast.style.transform = 'translateX(100%)';
     
     setTimeout(() => {
-        toast.remove();
+        if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
     }, 300);
-}
-
-// Add fake real-time data updates
-let updateCounter = 0;
-let updateInterval = setInterval(() => {
-    updateCounter++;
-    
-    // Update notification count
-    if (updateCounter % 30 === 0) {
-        const badge = document.querySelector('.notifications .badge');
-        if (badge) {
-            let count = parseInt(badge.textContent);
-            count = (count + 1) % 10;
-            badge.textContent = count;
-            
-            // Show notification toast
-            showToast('New Notification', 'You have a new security alert to review', 'warning');
-        }
-    }
-    
-    // Randomly update a metric
-    if (updateCounter % 15 === 0) {
-        const metrics = document.querySelectorAll('.metric-value');
-        if (metrics.length) {
-            const randomMetric = metrics[Math.floor(Math.random() * metrics.length)];
-            
-            // Create a subtle pulse animation
-            randomMetric.style.transition = 'transform 0.2s ease-in-out';
-            randomMetric.style.transform = 'scale(1.05)';
-            randomMetric.style.color = '#1a73e8';
-            
-            setTimeout(() => {
-                randomMetric.style.transform = 'scale(1)';
-                randomMetric.style.color = '';
-            }, 500);
-        }
-    }
-    
-    // Add a new activity every 45 seconds
-    if (updateCounter % 45 === 0) {
-        addRandomActivity();
-    }
-    
-    // Simulate a phishing alert after 20 seconds
-    if (updateCounter === 20) {
-        showPhishingAlert();
-    }
-}, 1000);
-
-function addRandomActivity() {
-    const activities = [
-        {
-            icon: 'fas fa-user-shield',
-            title: 'Security Alert',
-            desc: 'Multiple failed login attempts detected',
-            time: 'Just now',
-            class: 'bg-danger'
-        },
-        {
-            icon: 'fas fa-graduation-cap',
-            title: 'Training Milestone',
-            desc: 'IT Department reached 90% completion rate',
-            time: 'Just now',
-            class: 'bg-success'
-        },
-        {
-            icon: 'fas fa-rocket',
-            title: 'Campaign Update',
-            desc: 'Q1 Sales Campaign completed with 22% click rate',
-            time: 'Just now',
-            class: 'bg-primary'
-        }
-    ];
-    
-    const activityList = document.querySelector('.activity-list');
-    if (activityList) {
-        const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-        
-        const newActivity = document.createElement('div');
-        newActivity.className = 'activity-item';
-        newActivity.innerHTML = `
-            <div class="activity-icon ${randomActivity.class}">
-                <i class="${randomActivity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <div class="activity-title">${randomActivity.title}</div>
-                <div class="activity-desc">${randomActivity.desc}</div>
-                <div class="activity-time">${randomActivity.time}</div>
-            </div>
-        `;
-        
-        // Add animation class
-        newActivity.style.opacity = '0';
-        newActivity.style.transform = 'translateX(-10px)';
-        
-        // Insert at the top
-        if (activityList.firstChild) {
-            activityList.insertBefore(newActivity, activityList.firstChild);
-        } else {
-            activityList.appendChild(newActivity);
-        }
-        
-        // Animation
-        setTimeout(() => {
-            newActivity.style.transition = 'all 0.3s ease-in-out';
-            newActivity.style.opacity = '1';
-            newActivity.style.transform = 'translateX(0)';
-        }, 10);
-        
-        // Remove last item if more than 4
-        const items = activityList.querySelectorAll('.activity-item');
-        if (items.length > 4) {
-            items[items.length - 1].style.opacity = '0';
-            items[items.length - 1].style.transform = 'translateX(10px)';
-            
-            setTimeout(() => {
-                activityList.removeChild(items[items.length - 1]);
-            }, 300);
-        }
-    }
-}
-
-// Demo simulation - Phishing alert simulation
-function showPhishingAlert() {
-    // Create alert element
-    const alertElement = document.createElement('div');
-    alertElement.className = 'phishing-alert';
-    alertElement.innerHTML = `
-        <div class="phishing-alert-content">
-            <div class="alert-icon">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="alert-message">
-                <h3>High Risk Phishing Attempt Detected</h3>
-                <p>Executive team is currently being targeted with a sophisticated spear phishing campaign.</p>
-            </div>
-            <div class="alert-actions">
-                <button class="btn btn-outline alert-dismiss">Dismiss</button>
-                <button class="btn btn-primary">View Details</button>
-            </div>
-        </div>
-    `;
-    
-    // Add styles
-    alertElement.style.position = 'fixed';
-    alertElement.style.bottom = '30px';
-    alertElement.style.right = '30px';
-    alertElement.style.backgroundColor = isDarkMode ? '#2a2a2a' : 'white';
-    alertElement.style.boxShadow = '0 5px 20px rgba(0, 0, 0, 0.15)';
-    alertElement.style.borderRadius = '10px';
-    alertElement.style.zIndex = '1000';
-    alertElement.style.width = '350px';
-    alertElement.style.overflow = 'hidden';
-    alertElement.style.transform = 'translateY(100%)';
-    alertElement.style.opacity = '0';
-    alertElement.style.transition = 'all 0.3s ease-in-out';
-    
-    // Alert content styles
-    const contentStyle = alertElement.querySelector('.phishing-alert-content').style;
-    contentStyle.padding = '20px';
-    
-    // Icon styles
-    const iconStyle = alertElement.querySelector('.alert-icon').style;
-    iconStyle.backgroundColor = 'rgba(234, 67, 53, 0.1)';
-    iconStyle.color = '#EA4335';
-    iconStyle.width = '50px';
-    iconStyle.height = '50px';
-    iconStyle.borderRadius = '50%';
-    iconStyle.display = 'flex';
-    iconStyle.alignItems = 'center';
-    iconStyle.justifyContent = 'center';
-    iconStyle.fontSize = '24px';
-    iconStyle.marginBottom = '15px';
-    
-    // Message styles
-    const messageStyle = alertElement.querySelector('.alert-message').style;
-    messageStyle.marginBottom = '15px';
-    
-    const titleStyle = alertElement.querySelector('.alert-message h3').style;
-    titleStyle.fontSize = '16px';
-    titleStyle.marginBottom = '5px';
-    titleStyle.color = isDarkMode ? '#e0e0e0' : '#202124';
-    
-    const descStyle = alertElement.querySelector('.alert-message p').style;
-    descStyle.fontSize = '14px';
-    descStyle.margin = '0';
-    descStyle.color = isDarkMode ? '#b0b0b0' : '#5F6368';
-    
-    // Action styles
-    const actionsStyle = alertElement.querySelector('.alert-actions').style;
-    actionsStyle.display = 'flex';
-    actionsStyle.justifyContent = 'flex-end';
-    actionsStyle.gap = '10px';
-    
-    // Add to document
-    document.body.appendChild(alertElement);
-    
-    // Animate in
-    setTimeout(() => {
-        alertElement.style.transform = 'translateY(0)';
-        alertElement.style.opacity = '1';
-    }, 100);
-    
-    // Add dismiss functionality
-    const dismissBtn = alertElement.querySelector('.alert-dismiss');
-    dismissBtn.addEventListener('click', () => {
-        alertElement.style.transform = 'translateY(100%)';
-        alertElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            document.body.removeChild(alertElement);
-        }, 300);
-    });
-    
-    // View details button
-    const viewDetailsBtn = alertElement.querySelector('.btn-primary');
-    viewDetailsBtn.addEventListener('click', () => {
-        // Navigate to reports section
-        const reportsLink = document.querySelector('a[data-section="reports"]');
-        if (reportsLink) {
-            reportsLink.click();
-            
-            // Show success toast
-            showToast('Alert', 'Navigated to Reports section for detailed analysis', 'info');
-        }
-        
-        // Remove the alert
-        alertElement.style.transform = 'translateY(100%)';
-        alertElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            document.body.removeChild(alertElement);
-        }, 300);
-    });
-    
-    // Auto dismiss after 8 seconds
-    setTimeout(() => {
-        if (document.body.contains(alertElement)) {
-            alertElement.style.transform = 'translateY(100%)';
-            alertElement.style.opacity = '0';
-            
-            setTimeout(() => {
-                if (document.body.contains(alertElement)) {
-                    document.body.removeChild(alertElement);
-                }
-            }, 300);
-        }
-    }, 12000);
 }
