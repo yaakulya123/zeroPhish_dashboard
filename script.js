@@ -1,11 +1,11 @@
 // GoPhish API Configuration
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://13.48.140.162:3333/api';
 const API_KEY = '62eebca8cceddcfc38bb24b0527ae43d439e8ab0e95f2fdf36ffc9f84fc59528';
 
 // API Helper Function
 async function apiRequest(endpoint, method = 'GET', data = null) {
     // Add trailing slash if needed
-    if (!endpoint.endsWith('/')) {
+    if (!endpoint.endsWith('/') && !endpoint.includes('/complete')) {
         endpoint = endpoint + '/';
     }
     
@@ -24,32 +24,181 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     }
     
     try {
+        console.log(`Making API request to: ${url}`, options);
         const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
+        
+        // Log response status
+        console.log('Response status:', response.status);
+        
+        // Try to get response text
+        const responseText = await response.text();
+        console.log('Response preview:', responseText.substring(0, 200));
+        
+        // Try to parse JSON regardless of status
+        let jsonResponse;
+        try {
+            jsonResponse = JSON.parse(responseText);
+        } catch (e) {
+            console.error('Failed to parse JSON:', e);
+            jsonResponse = null;
         }
-        return await response.json();
+        
+        if (!response.ok) {
+            // If we have a JSON response with an error message, use it
+            if (jsonResponse && jsonResponse.message) {
+                throw new Error(jsonResponse.message);
+            } else {
+                console.error(`API Error: Status ${response.status}`);
+                throw new Error(`API Error: ${response.status} - ${responseText}`);
+            }
+        }
+        
+        // For POST requests, add a success flag to maintain consistency
+        if (method === 'POST' && jsonResponse && !('success' in jsonResponse)) {
+            jsonResponse.success = true;
+        }
+        
+        // Return the already parsed JSON or the raw text
+        return jsonResponse || responseText;
     } catch (error) {
         console.error('API Request Failed:', error);
         showToast('API Error', error.message, 'error');
-        return null;
+        throw error; // Re-throw to allow caller to handle
     }
 }
 
 // API Functions for different GoPhish resources
 async function fetchCampaigns() {
+    console.log("Fetching campaigns...");
     return await apiRequest('campaigns');
+}
+
+async function createCampaign(campaignData) {
+    console.log("Creating campaign with data:", campaignData);
+    try {
+        // Ensure template is properly formatted - this is the critical part
+        if (!campaignData.template || !campaignData.template.id) {
+            showToast('Error', 'Email template is required', 'error');
+            return null;
+        }
+        
+        // Make a direct API request instead of using our helper
+        const url = `${API_BASE_URL}/campaigns/`;
+        
+        // Format the campaign data specifically for GoPhish
+        const apiData = {
+            name: campaignData.name,
+            template: {
+                id: Number(campaignData.template.id)
+            },
+            url: campaignData.url,
+            page: {
+                id: Number(campaignData.page.id)
+            },
+            smtp: {
+                id: Number(campaignData.smtp.id)
+            },
+            launch_date: campaignData.launch_date,
+            groups: campaignData.groups || []
+        };
+        
+        console.log("Sending direct API data:", JSON.stringify(apiData));
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(apiData)
+        });
+        
+        // Get the response text
+        const responseText = await response.text();
+        console.log("Raw API response:", responseText);
+        
+        // Try to parse it as JSON
+        let result;
+        try {
+            result = JSON.parse(responseText);
+            console.log("Parsed response:", result);
+        } catch (e) {
+            console.error("Failed to parse response:", e);
+            result = null;
+        }
+        
+        // Check if response was successful
+        if (response.ok && result && !result.error) {
+            showToast('Success', 'Campaign created successfully', 'success');
+            return result;
+        } else {
+            // Handle error from response
+            const errorMsg = result && result.message 
+                ? result.message 
+                : `Failed with status ${response.status}`;
+            
+            showToast('Error', `Failed to create campaign: ${errorMsg}`, 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error("Campaign creation failed:", error);
+        showToast('Error', `Failed to create campaign: ${error.message}`, 'error');
+        return null;
+    }
+}
+
+async function completeCampaign(campaignId) {
+    try {
+        console.log(`Completing campaign with ID: ${campaignId}`);
+        // GoPhish API uses a POST request to the /campaigns/{id}/complete endpoint
+        const result = await apiRequest(`campaigns/${campaignId}/complete`, 'POST');
+        console.log('Campaign completion response:', result);
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to complete campaign');
+        }
+        return result;
+    } catch (error) {
+        console.error('Campaign completion error:', error);
+        throw error;
+    }
 }
 
 async function fetchGroups() {
     return await apiRequest('groups');
 }
 
-async function fetchTemplates() {
-    return await apiRequest('templates');
+async function createGroup(groupData) {
+    return await apiRequest('groups', 'POST', groupData);
 }
 
-async function fetchLandingPages() {
+async function fetchTemplates() {
+    const templates = await apiRequest('templates');
+    
+    if (templates && Array.isArray(templates)) {
+        // For each template, fetch its full details if needed
+        for (let i = 0; i < templates.length; i++) {
+            // If the template doesn't have full details, fetch them
+            if (!templates[i].html) {
+                try {
+                    const fullTemplate = await apiRequest(`templates/${templates[i].id}`);
+                    if (fullTemplate) {
+                        templates[i] = fullTemplate;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching details for template ${templates[i].id}:`, error);
+                }
+            }
+        }
+    }
+    
+    return templates;
+}
+
+async function createTemplate(templateData) {
+    return await apiRequest('templates', 'POST', templateData);
+}
+
+async function fetchPages() {
     return await apiRequest('pages');
 }
 
@@ -77,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initNavigation();
             initTabs();
             initUIInteractions();
+            initCampaignFunctionality();
             
             // Advanced visualizations with actual data
             initDashboardCharts(campaigns);
@@ -97,6 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
             initNavigation();
             initTabs();
             initUIInteractions();
+            initCampaignFunctionality();
             
             // Initialize charts with no data
             initDashboardCharts(null);
@@ -265,6 +416,11 @@ function initNavigation() {
                 // Update page title
                 updatePageTitle(targetSection);
                 
+                // Refresh data when navigating to campaigns
+                if (targetSection === 'campaigns') {
+                    refreshCampaigns();
+                }
+                
                 // Hide loading
                 hideLoading();
             }, 300);
@@ -329,6 +485,645 @@ function initTabs() {
     });
 }
 
+// Connect Campaign Functionality
+function initCampaignFunctionality() {
+    // Connect "New Campaign" button to show campaign form
+    const newCampaignBtns = document.querySelectorAll('.btn.btn-primary.pulsate-once');
+    
+    newCampaignBtns.forEach(btn => {
+        // Only connect if it's in the campaigns section or has a specific attribute
+        if (btn.closest('#campaigns-section') || btn.getAttribute('data-action') === 'new-campaign') {
+            btn.addEventListener('click', loadCampaignFormData);
+        }
+    });
+    
+    // Connect the form submission handlers
+    const createBtn = document.getElementById('create-campaign');
+    if (createBtn) {
+        createBtn.addEventListener('click', handleCampaignSubmit);
+    }
+    
+    const cancelBtn = document.getElementById('cancel-campaign');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            const modal = document.getElementById('new-campaign-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+    
+    // Also connect the close button (x)
+    const closeBtn = document.querySelector('.close-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+    
+    // Connect campaign action buttons
+    document.addEventListener('click', function(e) {
+        // Check if the clicked element is a campaign action button or its child
+        const actionBtn = e.target.closest('.action-buttons .btn-icon');
+        if (actionBtn) {
+            const campaignId = actionBtn.getAttribute('data-campaign-id');
+            const action = actionBtn.getAttribute('title');
+            
+            if (campaignId && action) {
+                handleCampaignAction(campaignId, action);
+            }
+        }
+    });
+}
+
+// Function to load data for campaign form
+async function loadCampaignFormData() {
+    showLoading();
+    
+    try {
+        // Fetch all required data in parallel
+        const [templates, pages, profiles, groups] = await Promise.all([
+            fetchTemplates(),
+            fetchPages(),
+            fetchSendingProfiles(),
+            fetchGroups()
+        ]);
+        
+        console.log('Form data loaded:', { templates, pages, profiles, groups });
+        
+        // Prepare modal content with form
+        const modalBody = document.querySelector('#new-campaign-modal .modal-body');
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <form id="campaign-form">
+                    <div class="form-group">
+                        <label for="campaign-name">Name:</label>
+                        <input type="text" id="campaign-name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="template">Email Template:</label>
+                        <select id="template" name="template" required>
+                            <option value="">Select Email Template</option>
+                            ${templates && templates.map(template => `
+                                <option value="${template.id}">${template.name}</option>
+                            `).join('') || ''}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="landing-page">Landing Page:</label>
+                        <select id="landing-page" name="landing-page" required>
+                            <option value="">Select Landing Page</option>
+                            ${pages && pages.map(page => `
+                                <option value="${page.id}">${page.name}</option>
+                            `).join('') || ''}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="redirect-url">URL:</label>
+                        <input type="url" id="redirect-url" name="url" value="https://13.48.140.162" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="launch-date">Launch Date</label>
+                            <input type="date" id="launch-date" name="launch_date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="launch-time">Launch Time</label>
+                            <input type="time" id="launch-time" name="launch_time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sending-profile">Sending Profile:</label>
+                        <select id="sending-profile" name="profile" required>
+                            <option value="">Select Sending Profile</option>
+                            ${profiles && profiles.map(profile => `
+                                <option value="${profile.id}">${profile.name}</option>
+                            `).join('') || ''}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target-groups">Target Groups:</label>
+                        <select id="target-groups" name="groups" multiple>
+                            ${groups && groups.map(group => `
+                                <option value="${group.id}">${group.name}</option>
+                            `).join('') || ''}
+                        </select>
+                    </div>
+                </form>
+            `;
+            
+            // Set default date to current date + time to current time + 15 minutes
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 2); // Add 15 minute buffer
+
+            const launchDateInput = document.getElementById('launch-date');
+            if (launchDateInput) {
+                    launchDateInput.valueAsDate = now;
+    
+                     // Set time to current time + 15 minutes
+                     const launchTimeInput = document.getElementById('launch-time');
+                        if (launchTimeInput) {
+                            const hours = now.getHours().toString().padStart(2, '0');
+                            const minutes = now.getMinutes().toString().padStart(2, '0');
+                            launchTimeInput.value = `${hours}:${minutes}`;
+                        }
+                    }
+        }
+        
+        // Show the modal
+        const modal = document.getElementById('new-campaign-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    } catch (error) {
+        console.error('Failed to load campaign form data:', error);
+        showToast('Error', 'Failed to load data for campaign creation', 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Add a fallback function with hardcoded template name as a last resort
+async function createCampaignWithHardcodedTemplate(name, templateId, pageId, url, profileId, launchDate, groupIds) {
+    const apiUrl = `${API_BASE_URL}/campaigns/`;
+    
+    // Get template name from select element
+    const templateSelect = document.getElementById('template');
+    const templateName = templateSelect ? 
+        templateSelect.options[templateSelect.selectedIndex].textContent : 
+        'Template';
+    
+    // Build a minimal request based on known GoPhish API format
+    const campaignData = {
+        name: name,
+        template: {
+            name: templateName,
+            id: Number(templateId)
+        },
+        url: url,
+        page: {
+            id: Number(pageId)
+        },
+        smtp: {
+            id: Number(profileId)
+        },
+        launch_date: launchDate,
+        groups: groupIds.map(id => ({ id: Number(id) }))
+    };
+    
+    console.log("Fallback campaign data:", JSON.stringify(campaignData));
+    
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(campaignData)
+        });
+        
+        const responseText = await response.text();
+        console.log("Fallback response:", responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Failed to parse fallback response:", e);
+            result = null;
+        }
+        
+        if (response.ok && result && !result.error) {
+            showToast('Success', 'Campaign created successfully', 'success');
+            return result;
+        } else {
+            const errorMsg = result && result.message 
+                ? result.message 
+                : `Failed with status ${response.status}`;
+            
+            showToast('Error', `Fallback creation failed: ${errorMsg}`, 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error("Fallback campaign creation failed:", error);
+        showToast('Error', `Fallback failed: ${error.message}`, 'error');
+        return null;
+    }
+}
+
+// Create an entirely new direct approach
+async function createCampaignDirectRequest(name, templateId, pageId, url, profileId, launchDate, groupIds) {
+    const apiUrl = `${API_BASE_URL}/campaigns/`;
+    
+    // Format exactly as GoPhish expects - simplified structure
+    const campaignData = {
+        name: name,
+        template_id: Number(templateId),  // CRITICAL: Use template_id not template.id
+        page_id: Number(pageId),          // CRITICAL: Use page_id not page.id
+        url: url,
+        smtp_id: Number(profileId),       // CRITICAL: Use smtp_id not smtp.id
+        launch_date: launchDate
+    };
+    
+    // Add groups if present
+    if (groupIds && groupIds.length > 0) {
+        campaignData.groups = groupIds.map(id => ({ id: Number(id) }));
+    } else {
+        campaignData.groups = [];
+    }
+    
+    console.log("Direct request data:", JSON.stringify(campaignData));
+    
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(campaignData)
+        });
+        
+        const responseText = await response.text();
+        console.log("Direct request response:", responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Failed to parse response:", e);
+            result = null;
+        }
+        
+        if (response.ok && result && !result.error) {
+            showToast('Success', 'Campaign created successfully', 'success');
+            return result;
+        } else {
+            const errorMsg = result && result.message 
+                ? result.message 
+                : `Failed with status ${response.status}`;
+            
+            showToast('Error', `Direct creation failed: ${errorMsg}`, 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error("Direct campaign creation failed:", error);
+        showToast('Error', `Direct creation failed: ${error.message}`, 'error');
+        return null;
+    }
+}
+
+// Try a final approach with the exact documented GoPhish API structure
+async function createCampaignFinalAttempt(name, templateId, pageId, url, profileId, launchDate, groupIds) {
+    const apiUrl = `${API_BASE_URL}/campaigns/`;
+    
+    // Format according to GoPhish API documentation
+    const campaignData = {
+        name: name,
+        url: url,
+        launch_date: launchDate,
+        send_by_date: null,
+        template: { id: Number(templateId) },
+        page: { id: Number(pageId) },
+        smtp: { id: Number(profileId) },
+        groups: groupIds && groupIds.length > 0 ? groupIds.map(id => ({ id: Number(id) })) : []
+    };
+    
+    console.log("Final attempt data:", JSON.stringify(campaignData));
+    
+    try {
+        // Get the actual template and page to check they exist
+        const template = await apiRequest(`templates/${templateId}`);
+        const page = await apiRequest(`pages/${pageId}`);
+        
+        console.log("Template verification:", template);
+        console.log("Page verification:", page);
+        
+        if (!template || !template.id) {
+            showToast('Error', 'Invalid template ID or template not found', 'error');
+            return null;
+        }
+        
+        if (!page || !page.id) {
+            showToast('Error', 'Invalid page ID or page not found', 'error');
+            return null;
+        }
+        
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': API_KEY,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(campaignData)
+        });
+        
+        const responseText = await response.text();
+        console.log("Final attempt response:", responseText);
+        
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch (e) {
+            console.error("Failed to parse response:", e);
+            result = null;
+        }
+        
+        if (response.ok && result && !result.error) {
+            showToast('Success', 'Campaign created successfully', 'success');
+            return result;
+        } else {
+            const errorMsg = result && result.message 
+                ? result.message 
+                : `Failed with status ${response.status}`;
+            
+            showToast('Error', `Final attempt failed: ${errorMsg}`, 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error("Final attempt failed:", error);
+        showToast('Error', `Final attempt failed: ${error.message}`, 'error');
+        return null;
+    }
+}
+
+// Add a diagnostic test function
+async function testGoPhishAPI() {
+    console.log('Running GoPhish API diagnostics...');
+    
+    try {
+        // Test API connectivity
+        console.log('Testing API connectivity...');
+        
+        // Test basic connectivity first
+        try {
+            const pingResult = await apiRequest('', 'GET');
+            console.log('Basic API connectivity test:', pingResult);
+        } catch (error) {
+            console.error('Basic API connectivity failed:', error);
+            return { 
+                success: false, 
+                error: `Could not connect to the GoPhish API server: ${error.message}` 
+            };
+        }
+        
+        // Check for templates
+        console.log('Fetching templates...');
+        let templates = [];
+        try {
+            templates = await apiRequest('templates');
+            console.log(`Found ${templates.length} templates`);
+            if (!templates.length) {
+                return { 
+                    success: false, 
+                    error: 'No email templates found. Please create at least one template first.' 
+                };
+            }
+        } catch (error) {
+            console.error('Failed to fetch templates:', error);
+            return { 
+                success: false, 
+                error: `Failed to fetch templates: ${error.message}` 
+            };
+        }
+        
+        // Check for landing pages
+        console.log('Fetching landing pages...');
+        let pages = [];
+        try {
+            pages = await apiRequest('pages');
+            console.log(`Found ${pages.length} landing pages`);
+            if (!pages.length) {
+                return { 
+                    success: false, 
+                    error: 'No landing pages found. Please create at least one landing page first.' 
+                };
+            }
+        } catch (error) {
+            console.error('Failed to fetch landing pages:', error);
+            return { 
+                success: false, 
+                error: `Failed to fetch landing pages: ${error.message}` 
+            };
+        }
+        
+        // Check for sending profiles
+        console.log('Fetching SMTP profiles...');
+        let smtpProfiles = [];
+        try {
+            smtpProfiles = await apiRequest('smtp');
+            console.log(`Found ${smtpProfiles.length} SMTP profiles`);
+            if (!smtpProfiles.length) {
+                return { 
+                    success: false, 
+                    error: 'No sending profiles found. Please create at least one sending profile first.' 
+                };
+            }
+        } catch (error) {
+            console.error('Failed to fetch SMTP profiles:', error);
+            return { 
+                success: false, 
+                error: `Failed to fetch SMTP profiles: ${error.message}` 
+            };
+        }
+        
+        // Check for target groups
+        console.log('Fetching groups...');
+        let groups = [];
+        try {
+            groups = await apiRequest('groups');
+            console.log(`Found ${groups.length} groups`);
+            if (!groups.length) {
+                return { 
+                    success: false, 
+                    error: 'No target groups found. Please create at least one group first.' 
+                };
+            }
+        } catch (error) {
+            console.error('Failed to fetch groups:', error);
+            return { 
+                success: false, 
+                error: `Failed to fetch groups: ${error.message}` 
+            };
+        }
+        
+        // Create test campaign with correct field names
+        const testCampaignData = {
+            name: 'API Test Campaign',
+            url: 'https://example.com',
+            launch_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year in future
+            template_id: templates[0].id,
+            page_id: pages[0].id,
+            smtp_id: smtpProfiles[0].id,
+            groups: [{ id: groups[0].id }]
+        };
+        
+        console.log('Creating test campaign with data:', JSON.stringify(testCampaignData));
+        
+        // Create test campaign
+        let testResponse;
+        try {
+            testResponse = await apiRequest('campaigns', 'POST', testCampaignData);
+            console.log('Test campaign creation response:', testResponse);
+            
+            if (!testResponse.success) {
+                return { 
+                    success: false, 
+                    error: `API test failed: ${testResponse.message || 'Unable to create test campaign'}` 
+                };
+            }
+            
+            // Clean up - delete the test campaign
+            console.log('Cleaning up - deleting test campaign...');
+            await apiRequest(`campaigns/${testResponse.id}`, 'DELETE');
+            
+        } catch (error) {
+            console.error('Failed to create test campaign:', error);
+            return { 
+                success: false, 
+                error: `Failed to create test campaign: ${error.message}` 
+            };
+        }
+        
+        return { 
+            success: true,
+            message: 'All GoPhish API tests passed successfully',
+            details: {
+                templates: templates.length,
+                pages: pages.length,
+                smtpProfiles: smtpProfiles.length,
+                groups: groups.length
+            }
+        };
+    } catch (error) {
+        console.error('API diagnostic error:', error);
+        return { 
+            success: false, 
+            error: `API test failed: ${error.message || 'Unknown error'}` 
+        };
+    }
+}
+
+// Update handleCampaignSubmit to try using entire objects
+async function handleCampaignSubmit(e) {
+    e.preventDefault();
+    
+    try {
+        showLoading();
+        
+        // Get form data
+        const name = document.getElementById('campaign-name').value.trim();
+        const templateId = parseInt(document.getElementById('template').value);
+        const pageId = parseInt(document.getElementById('landing-page').value);
+        const url = document.getElementById('redirect-url').value.trim();
+        const profileId = parseInt(document.getElementById('sending-profile').value);
+        
+        // Get launch date/time and create ISO string
+        const launchDate = document.getElementById('launch-date').value;
+        const launchTime = document.getElementById('launch-time').value || '08:00';
+        const launchDateTime = new Date(`${launchDate}T${launchTime}`);
+        
+        // Get selected groups from multi-select
+        const groupSelect = document.getElementById('target-groups');
+        const groupIds = Array.from(groupSelect.selectedOptions).map(option => ({
+            id: parseInt(option.value)
+        }));
+        
+        if (groupIds.length === 0) {
+            showAlert('warning', 'Please select at least one target group');
+            return;
+        }
+        
+        console.log('Form data:', { name, templateId, pageId, url, profileId, launchDateTime, groupIds });
+        
+        // Create campaign object with flat field names
+        const campaignData = {
+            name: name,
+            template_id: Number(templateId),  // Use flat field
+            page_id: Number(pageId),          // Use flat field
+            url: url,
+            smtp_id: Number(profileId),       // Use flat field
+            launch_date: launchDateTime.toISOString(),
+            groups: groupIds
+        };
+        
+        console.log('Selected template ID:', templateId, typeof templateId);
+        
+        // Send API request
+        const response = await createCampaignDirectRequest(
+            name, 
+            templateId, 
+            pageId, 
+            url, 
+            profileId, 
+            launchDateTime.toISOString(), 
+            groupIds
+        );
+        
+        console.log('Campaign creation response:', response);
+        
+        if (response.success === false) {
+            showAlert('error', `Failed to create campaign: ${response.message}`);
+            return;
+        }
+        
+        showAlert('success', 'Campaign created successfully!');
+        
+        // Reset form and update list
+        document.getElementById('campaign-form').reset();
+        fetchCampaigns();
+    } catch (error) {
+        console.error('Campaign creation error:', error);
+        showAlert('error', `Error creating campaign: ${error.message || 'Unknown error'}`);
+    } finally {
+        hideLoading();
+    }
+}
+
+// Handle campaign actions (view, edit, etc.)
+function handleCampaignAction(campaignId, action) {
+    console.log(`Campaign action: ${action} for campaign ID: ${campaignId}`);
+    
+    switch (action) {
+        case 'View Results':
+        case 'View Details':
+            // Redirect to GoPhish campaign results page
+            window.open(`https://${window.location.hostname}:3333/campaigns/${campaignId}`, '_blank');
+            break;
+            
+        case 'Complete Campaign':
+            // Complete the campaign via API
+            completeCampaign(campaignId)
+                .then(() => {
+                    showToast('Success', 'Campaign marked as complete', 'success');
+                    refreshCampaigns();
+                })
+                .catch(error => {
+                    console.error('Error completing campaign:', error);
+                    showToast('Error', 'Failed to complete campaign', 'error');
+                });
+            break;
+            
+        default:
+            showToast('Info', `Action "${action}" not implemented yet`, 'info');
+            break;
+    }
+}
+
 // Update campaigns table with real data
 function updateCampaignsTable(campaigns) {
     console.log("Complete campaign data:", JSON.stringify(campaigns, null, 2));
@@ -380,10 +1175,22 @@ function updateCampaignsTable(campaigns) {
                 endDate = endDateObj.toLocaleDateString();
             }
             
+            // Determine status
+            let status = 'In Progress';
+            let statusClass = 'in-progress';
+            
+            if (campaign.status === 'Completed') {
+                status = 'Completed';
+                statusClass = 'completed';
+            } else if (new Date(campaign.launch_date) > new Date()) {
+                status = 'Scheduled';
+                statusClass = 'pending';
+            }
+            
             row.innerHTML = `
                 <td>${campaign.name}</td>
                 <td>${campaign.groups && campaign.groups.length > 0 ? campaign.groups.map(g => g.name).join(', ') : 'All Users'}</td>
-                <td><span class="status-badge in-progress">In Progress</span></td>
+                <td><span class="status-badge ${statusClass}">${status}</span></td>
                 <td>
                     <div class="progress-bar">
                         <div class="progress" style="width: ${progress}%"></div>
@@ -395,9 +1202,9 @@ function updateCampaignsTable(campaigns) {
                 <td>${successRate}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-icon" title="View Details" data-tooltip="View campaign details"><i class="fas fa-eye"></i></button>
-                        <button class="btn-icon" title="Edit Campaign" data-tooltip="Edit campaign settings"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon" title="Pause Campaign" data-tooltip="Pause campaign"><i class="fas fa-pause"></i></button>
+                        <button class="btn-icon" title="View Results" data-tooltip="View campaign results" data-campaign-id="${campaign.id}"><i class="fas fa-chart-bar"></i></button>
+                        <button class="btn-icon" title="View Details" data-tooltip="View campaign details" data-campaign-id="${campaign.id}"><i class="fas fa-eye"></i></button>
+                        <button class="btn-icon" title="Complete Campaign" data-tooltip="Complete campaign" data-campaign-id="${campaign.id}"><i class="fas fa-check-circle"></i></button>
                     </div>
                 </td>
             `;
@@ -405,10 +1212,14 @@ function updateCampaignsTable(campaigns) {
             tableBody.appendChild(row);
         });
     }
+    
+    // Animate progress bars
+    animateProgressBars();
 }
 
 // Advanced Dashboard Charts
 async function initDashboardCharts(campaigns) {
+    showLoading();
     try {
         // If campaigns weren't passed in, try to fetch them
         if (!campaigns) {
@@ -450,6 +1261,8 @@ async function initDashboardCharts(campaigns) {
     } catch (error) {
         console.error('Failed to initialize dashboard:', error);
         showToast('Error', 'Failed to load dashboard data', 'error');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -458,7 +1271,7 @@ function updateDashboardMetrics(campaigns) {
     // Update active campaigns count
     const activeCampaignsMetric = document.querySelector('.metric-card:nth-child(1) .metric-value');
     if (activeCampaignsMetric) {
-        const activeCampaigns = campaigns.filter(c => c.status === 'In progress' || !c.completed_date);
+        const activeCampaigns = campaigns.filter(c => !c.completed || c.status !== 'Completed');
         activeCampaignsMetric.textContent = activeCampaigns.length.toString();
     }
     
@@ -522,93 +1335,100 @@ function initSecurityPostureGauge(campaigns) {
         }
     }
 
-    const options = {
-        series: [Math.round(score)],
-        chart: {
-            height: 250,
-            type: 'radialBar',
-            offsetY: -10,
-            foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        plotOptions: {
-            radialBar: {
-                startAngle: -135,
-                endAngle: 135,
-                hollow: {
-                    margin: 0,
-                    size: '70%',
-                    background: isDarkMode ? '#2a2a2a' : '#fff',
-                    image: undefined,
-                    imageOffsetX: 0,
-                    imageOffsetY: 0,
-                    position: 'front'
-                },
-                track: {
-                    background: isDarkMode ? '#444444' : '#f2f2f2',
-                    strokeWidth: '67%',
-                    margin: 0
-                },
-                dataLabels: {
-                    show: true,
-                    name: {
-                        show: true,
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        offsetY: -10,
-                        color: isDarkMode ? '#e0e0e0' : '#333333'
-                    },
-                    value: {
-                        formatter: function(val) {
-                            return parseInt(val) + "/100";
-                        },
-                        color: isDarkMode ? '#e0e0e0' : '#333333',
-                        fontSize: '24px',
-                        fontWeight: 700,
-                        offsetY: 5
-                    }
-                }
-            }
-        },
-        fill: {
-            type: 'gradient',
-            gradient: {
-                shade: 'dark',
-                type: 'horizontal',
-                shadeIntensity: 0.5,
-                gradientToColors: ['#34a853'],
-                inverseColors: true,
-                opacityFrom: 1,
-                opacityTo: 1,
-                stops: [0, 100]
-            }
-        },
-        stroke: {
-            lineCap: 'round'
-        },
-        labels: ['Security Posture'],
-        colors: ['#fbbc05'],
-        states: {
-            hover: {
-                filter: {
-                    type: 'none'
-                }
-            }
-        },
-        tooltip: {
-            theme: isDarkMode ? 'dark' : 'light'
-        }
-    };
-
     try {
-        const chart = new ApexCharts(element, options);
-        chart.render();
-        
-        // Add animation
-        setTimeout(() => {
-            chart.updateSeries([Math.round(score)]);
-        }, 500);
+        // Check if ApexCharts is available
+        if (typeof ApexCharts !== 'undefined') {
+            const options = {
+                series: [Math.round(score)],
+                chart: {
+                    height: 250,
+                    type: 'radialBar',
+                    offsetY: -10,
+                    foreColor: isDarkMode ? '#e0e0e0' : '#333333'
+                },
+                plotOptions: {
+                    radialBar: {
+                        startAngle: -135,
+                        endAngle: 135,
+                        hollow: {
+                            margin: 0,
+                            size: '70%',
+                            background: isDarkMode ? '#2a2a2a' : '#fff',
+                            image: undefined,
+                            imageOffsetX: 0,
+                            imageOffsetY: 0,
+                            position: 'front'
+                        },
+                        track: {
+                            background: isDarkMode ? '#444444' : '#f2f2f2',
+                            strokeWidth: '67%',
+                            margin: 0
+                        },
+                        dataLabels: {
+                            show: true,
+                            name: {
+                                show: true,
+                                fontSize: '14px',
+                                fontWeight: 600,
+                                offsetY: -10,
+                                color: isDarkMode ? '#e0e0e0' : '#333333'
+                            },
+                            value: {
+                                formatter: function(val) {
+                                    return parseInt(val) + "/100";
+                                },
+                                color: isDarkMode ? '#e0e0e0' : '#333333',
+                                fontSize: '24px',
+                                fontWeight: 700,
+                                offsetY: 5
+                            }
+                        }
+                    }
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'dark',
+                        type: 'horizontal',
+                        shadeIntensity: 0.5,
+                        gradientToColors: ['#34a853'],
+                        inverseColors: true,
+                        opacityFrom: 1,
+                        opacityTo: 1,
+                        stops: [0, 100]
+                    }
+                },
+                stroke: {
+                    lineCap: 'round'
+                },
+                labels: ['Security Posture'],
+                colors: ['#fbbc05'],
+                states: {
+                    hover: {
+                        filter: {
+                            type: 'none'
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: isDarkMode ? 'dark' : 'light'
+                }
+            };
+
+            const chart = new ApexCharts(element, options);
+            chart.render();
+            
+            // Add animation
+            setTimeout(() => {
+                chart.updateSeries([Math.round(score)]);
+            }, 500);
+        } else {
+            console.warn('ApexCharts not available for Security Posture Gauge');
+            element.innerHTML = `<div style="text-align: center; padding: 20px;">Security Posture: ${score}/100</div>`;
+        }
     } catch (error) {
         console.error('Error rendering Security Posture Gauge:', error);
+        element.innerHTML = `<div style="text-align: center; padding: 20px;">Error displaying chart</div>`;
     }
 }
 
@@ -690,86 +1510,93 @@ function initCampaignPerformanceChart(campaigns) {
         ];
     }
     
-    const options = {
-        series: seriesData,
-        chart: {
-            type: 'area',
-            height: 350,
-            zoom: {
-                enabled: false
-            },
-            toolbar: {
-                show: true,
-                tools: {
-                    download: true,
-                    selection: false,
-                    zoom: false,
-                    zoomin: false,
-                    zoomout: false,
-                    pan: false,
-                    reset: false
-                }
-            },
-            foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 3
-        },
-        colors: ['#ea4335', '#34a853'],
-        fill: {
-            type: 'gradient',
-            gradient: {
-                opacityFrom: 0.3,
-                opacityTo: 0.1
-            }
-        },
-        xaxis: {
-            categories: categories,
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        yaxis: {
-            labels: {
-                formatter: function(val) {
-                    return val + '%';
-                },
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        tooltip: {
-            theme: isDarkMode ? 'dark' : 'light',
-            y: {
-                formatter: function(val) {
-                    return val + '%';
-                }
-            }
-        },
-        grid: {
-            borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-        },
-        legend: {
-            position: 'top',
-            horizontalAlign: 'right',
-            labels: {
-                colors: isDarkMode ? '#e0e0e0' : '#333333'
-            }
-        }
-    };
-
     try {
-        const chart = new ApexCharts(element, options);
-        chart.render();
+        // Check if ApexCharts is available
+        if (typeof ApexCharts !== 'undefined') {
+            const options = {
+                series: seriesData,
+                chart: {
+                    type: 'area',
+                    height: 350,
+                    zoom: {
+                        enabled: false
+                    },
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: false,
+                            zoom: false,
+                            zoomin: false,
+                            zoomout: false,
+                            pan: false,
+                            reset: false
+                        }
+                    },
+                    foreColor: isDarkMode ? '#e0e0e0' : '#333333'
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                colors: ['#ea4335', '#34a853'],
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        opacityFrom: 0.3,
+                        opacityTo: 0.1
+                    }
+                },
+                xaxis: {
+                    categories: categories,
+                    labels: {
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(val) {
+                            return val + '%';
+                        },
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: isDarkMode ? 'dark' : 'light',
+                    y: {
+                        formatter: function(val) {
+                            return val + '%';
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: isDarkMode ? '#444444' : '#e0e0e0'
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    labels: {
+                        colors: isDarkMode ? '#e0e0e0' : '#333333'
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(element, options);
+            chart.render();
+        } else {
+            console.warn('ApexCharts not available for Campaign Performance Chart');
+            element.innerHTML = `<div style="text-align: center; padding: 20px;">Campaign data available but chart library not loaded</div>`;
+        }
     } catch (error) {
         console.error('Error rendering Campaign Performance Chart:', error);
+        element.innerHTML = `<div style="text-align: center; padding: 20px;">Error displaying chart</div>`;
     }
 }
 
@@ -777,84 +1604,91 @@ function initVulnerabilityChart() {
     const element = document.getElementById('vulnerabilityChart');
     if (!element) return;
     
-    // We don't have real department data yet, so keeping this minimal
-    const options = {
-        series: [{
-            name: 'Vulnerability Score',
-            data: [0, 0, 0, 0, 0, 0]
-        }],
-        chart: {
-            type: 'bar',
-            height: 250,
-            toolbar: {
-                show: false
-            },
-            foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        plotOptions: {
-            bar: {
-                columnWidth: '60%',
-                borderRadius: 5,
-                dataLabels: {
-                    position: 'top'
-                }
-            }
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(val) {
-                return val + '%';
-            },
-            offsetY: -20,
-            style: {
-                fontSize: '12px',
-                colors: [isDarkMode ? '#e0e0e0' : '#333333']
-            }
-        },
-        colors: ['#1a73e8'],
-        xaxis: {
-            categories: ['Executive', 'IT', 'Finance', 'HR', 'Marketing', 'Sales'],
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            },
-            axisBorder: {
-                show: false
-            },
-            axisTicks: {
-                show: false
-            }
-        },
-        yaxis: {
-            max: 50,
-            labels: {
-                formatter: function(val) {
-                    return val + '%';
-                },
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        grid: {
-            borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-        },
-        tooltip: {
-            theme: isDarkMode ? 'dark' : 'light',
-            y: {
-                formatter: function(val) {
-                    return val + '% vulnerability';
-                }
-            }
-        }
-    };
-
     try {
-        const chart = new ApexCharts(element, options);
-        chart.render();
+        // Check if ApexCharts is available
+        if (typeof ApexCharts !== 'undefined') {
+            // We don't have real department data yet, so keeping this minimal
+            const options = {
+                series: [{
+                    name: 'Vulnerability Score',
+                    data: [0, 0, 0, 0, 0, 0]
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 250,
+                    toolbar: {
+                        show: false
+                    },
+                    foreColor: isDarkMode ? '#e0e0e0' : '#333333'
+                },
+                plotOptions: {
+                    bar: {
+                        columnWidth: '60%',
+                        borderRadius: 5,
+                        dataLabels: {
+                            position: 'top'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function(val) {
+                        return val + '%';
+                    },
+                    offsetY: -20,
+                    style: {
+                        fontSize: '12px',
+                        colors: [isDarkMode ? '#e0e0e0' : '#333333']
+                    }
+                },
+                colors: ['#1a73e8'],
+                xaxis: {
+                    categories: ['Executive', 'IT', 'Finance', 'HR', 'Marketing', 'Sales'],
+                    labels: {
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    },
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    max: 50,
+                    labels: {
+                        formatter: function(val) {
+                            return val + '%';
+                        },
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: isDarkMode ? '#444444' : '#e0e0e0'
+                },
+                tooltip: {
+                    theme: isDarkMode ? 'dark' : 'light',
+                    y: {
+                        formatter: function(val) {
+                            return val + '% vulnerability';
+                        }
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(element, options);
+            chart.render();
+        } else {
+            console.warn('ApexCharts not available for Vulnerability Chart');
+            element.innerHTML = `<div style="text-align: center; padding: 20px;">Vulnerability data not available</div>`;
+        }
     } catch (error) {
         console.error('Error rendering Vulnerability Chart:', error);
+        element.innerHTML = `<div style="text-align: center; padding: 20px;">Error displaying chart</div>`;
     }
 }
 
@@ -862,95 +1696,102 @@ function initTrainingFunnelChart() {
     const element = document.getElementById('trainingFunnelChart');
     if (!element) return;
     
-    // No real training data yet, so using 0s
-    const options = {
-        series: [
-            {
-                name: 'Employees',
-                data: [0, 0, 0, 0, 0]
-            }
-        ],
-        chart: {
-            type: 'bar',
-            height: 250,
-            toolbar: {
-                show: false
-            },
-            foreColor: isDarkMode ? '#e0e0e0' : '#333333'
-        },
-        plotOptions: {
-            bar: {
-                horizontal: true,
-                distributed: true,
-                dataLabels: {
-                    position: 'bottom'
-                },
-                barHeight: '60%',
-                startingShape: 'flat',
-                endingShape: 'flat'
-            }
-        },
-        dataLabels: {
-            enabled: true,
-            formatter: function(val) {
-                return val;
-            },
-            textAnchor: 'start',
-            offsetX: 5,
-            style: {
-                fontSize: '12px',
-                colors: ['#fff']
-            },
-            background: {
-                enabled: false
-            }
-        },
-        colors: [
-            '#1a73e8', 
-            '#34a853', 
-            '#ea4335', 
-            '#fbbc05', 
-            '#4285f4'
-        ],
-        xaxis: {
-            categories: [
-                'Assigned', 
-                'Started', 
-                'In Progress', 
-                'Completed', 
-                'Passed'
-            ],
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        yaxis: {
-            labels: {
-                style: {
-                    colors: isDarkMode ? '#e0e0e0' : '#333333'
-                }
-            }
-        },
-        grid: {
-            borderColor: isDarkMode ? '#444444' : '#e0e0e0'
-        },
-        tooltip: {
-            theme: isDarkMode ? 'dark' : 'light',
-            y: {
-                formatter: function(val) {
-                    return val + ' employees';
-                }
-            }
-        }
-    };
-
     try {
-        const chart = new ApexCharts(element, options);
-        chart.render();
+        // Check if ApexCharts is available
+        if (typeof ApexCharts !== 'undefined') {
+            // No real training data yet, so using 0s
+            const options = {
+                series: [
+                    {
+                        name: 'Employees',
+                        data: [0, 0, 0, 0, 0]
+                    }
+                ],
+                chart: {
+                    type: 'bar',
+                    height: 250,
+                    toolbar: {
+                        show: false
+                    },
+                    foreColor: isDarkMode ? '#e0e0e0' : '#333333'
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        distributed: true,
+                        dataLabels: {
+                            position: 'bottom'
+                        },
+                        barHeight: '60%',
+                        startingShape: 'flat',
+                        endingShape: 'flat'
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function(val) {
+                        return val;
+                    },
+                    textAnchor: 'start',
+                    offsetX: 5,
+                    style: {
+                        fontSize: '12px',
+                        colors: ['#fff']
+                    },
+                    background: {
+                        enabled: false
+                    }
+                },
+                colors: [
+                    '#1a73e8', 
+                    '#34a853', 
+                    '#ea4335', 
+                    '#fbbc05', 
+                    '#4285f4'
+                ],
+                xaxis: {
+                    categories: [
+                        'Assigned', 
+                        'Started', 
+                        'In Progress', 
+                        'Completed', 
+                        'Passed'
+                    ],
+                    labels: {
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: isDarkMode ? '#e0e0e0' : '#333333'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: isDarkMode ? '#444444' : '#e0e0e0'
+                },
+                tooltip: {
+                    theme: isDarkMode ? 'dark' : 'light',
+                    y: {
+                        formatter: function(val) {
+                            return val + ' employees';
+                        }
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(element, options);
+            chart.render();
+        } else {
+            console.warn('ApexCharts not available for Training Funnel Chart');
+            element.innerHTML = `<div style="text-align: center; padding: 20px;">Training data not available</div>`;
+        }
     } catch (error) {
         console.error('Error rendering Training Funnel Chart:', error);
+        element.innerHTML = `<div style="text-align: center; padding: 20px;">Error displaying chart</div>`;
     }
 }
 
@@ -967,14 +1808,6 @@ function updateChartsTheme() {
 
 // UI Interactions
 function initUIInteractions() {
-    // Connect New Campaign button to the campaign creation modal
-    const newCampaignBtn = document.querySelector('.btn.btn-primary.pulsate-once');
-    if (newCampaignBtn) {
-        newCampaignBtn.addEventListener('click', function() {
-            showCampaignModal();
-        });
-    }
-
     // Email Simulator - Template Selection
     const templateItems = document.querySelectorAll('.template-item');
     templateItems.forEach(item => {
@@ -1033,219 +1866,19 @@ function initUIInteractions() {
     initNotificationInteractions();
 }
 
-// Show Campaign Modal
-function showCampaignModal() {
-    // First, check if the modal exists
-    const modal = document.getElementById('new-campaign-modal');
-    if (!modal) {
-        // Create a modal if it doesn't exist
-        createCampaignModal();
-    } else {
-        // Show the existing modal
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-    }
-}
-
-// Create Campaign Modal
-function createCampaignModal() {
-    // First fetch groups and templates for the form
-    Promise.all([fetchGroups(), fetchTemplates(), fetchLandingPages(), fetchSendingProfiles()])
-        .then(([groups, templates, pages, profiles]) => {
-            // Create modal HTML
-            const modalHtml = `
-                <div class="modal" id="new-campaign-modal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>Create New Campaign</h2>
-                            <button class="close-modal"><i class="fas fa-times"></i></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="new-campaign-form">
-                                <div class="form-group">
-                                    <label for="campaign-name">Campaign Name</label>
-                                    <input type="text" id="campaign-name" name="name" required>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="campaign-group">Target Group</label>
-                                    <select id="campaign-group" name="group" required>
-                                        <option value="">Select a group</option>
-                                        ${groups && groups.map(group => `
-                                            <option value="${group.id}">${group.name}</option>
-                                        `).join('') || ''}
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="campaign-template">Email Template</label>
-                                    <select id="campaign-template" name="template" required>
-                                        <option value="">Select a template</option>
-                                        ${templates && templates.map(template => `
-                                            <option value="${template.id}">${template.name}</option>
-                                        `).join('') || ''}
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="campaign-page">Landing Page</label>
-                                    <select id="campaign-page" name="page" required>
-                                        <option value="">Select a landing page</option>
-                                        ${pages && pages.map(page => `
-                                            <option value="${page.id}">${page.name}</option>
-                                        `).join('') || ''}
-                                    </select>
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="campaign-profile">Sending Profile</label>
-                                    <select id="campaign-profile" name="profile" required>
-                                        <option value="">Select a sending profile</option>
-                                        ${profiles && profiles.map(profile => `
-                                            <option value="${profile.id}">${profile.name}</option>
-                                        `).join('') || ''}
-                                    </select>
-                                </div>
-                                
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="campaign-launch-date">Launch Date</label>
-                                        <input type="date" id="campaign-launch-date" name="launch_date" required>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label for="campaign-launch-time">Launch Time</label>
-                                        <input type="time" id="campaign-launch-time" name="launch_time" required>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn btn-outline" id="cancel-campaign">Cancel</button>
-                            <button class="btn btn-primary" id="create-campaign">Create Campaign</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Add modal to the DOM
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            
-            // Add event listeners
-            initModalFunctionality();
-            
-            // Show the modal
-            const modal = document.getElementById('new-campaign-modal');
-            if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
-                
-                // Set default launch date to tomorrow
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                
-                const launchDateInput = document.getElementById('campaign-launch-date');
-                if (launchDateInput) {
-                    launchDateInput.valueAsDate = tomorrow;
-                }
-                
-                // Add form submission handler
-                const createBtn = document.getElementById('create-campaign');
-                const cancelBtn = document.getElementById('cancel-campaign');
-                
-                if (createBtn) {
-                    createBtn.addEventListener('click', handleCampaignSubmit);
-                }
-                
-                if (cancelBtn) {
-                    cancelBtn.addEventListener('click', function() {
-                        modal.style.display = 'none';
-                        document.body.style.overflow = 'auto';
-                    });
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data for campaign modal:', error);
-            showToast('Error', 'Failed to load campaign form data', 'error');
-        });
-}
-
-// Handle Campaign Form Submission
-function handleCampaignSubmit() {
-    const form = document.getElementById('new-campaign-form');
-    if (!form) return;
-    
-    // Validate form
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
-    
-    // Get form data
-    const name = document.getElementById('campaign-name').value;
-    const groupId = document.getElementById('campaign-group').value;
-    const templateId = document.getElementById('campaign-template').value;
-    const pageId = document.getElementById('campaign-page').value;
-    const profileId = document.getElementById('campaign-profile').value;
-    const launchDate = document.getElementById('campaign-launch-date').value;
-    const launchTime = document.getElementById('campaign-launch-time').value;
-    
-    // Combine date and time
-    const launchDateTime = new Date(`${launchDate}T${launchTime}`);
-    
-    // Prepare campaign data
-    const campaignData = {
-        name: name,
-        groups: [{ id: parseInt(groupId) }],
-        template: { id: parseInt(templateId) },
-        page: { id: parseInt(pageId) },
-        smtp: { id: parseInt(profileId) },
-        launch_date: launchDateTime.toISOString()
-    };
-    
-    // Show loading
-    showLoading();
-    
-    // Submit to API
-    apiRequest('campaigns', 'POST', campaignData)
-        .then(response => {
-            hideLoading();
-            
-            // Close modal
-            const modal = document.getElementById('new-campaign-modal');
-            if (modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-            }
-            
-            // Show success message
-            showToast('Success', 'Campaign created successfully', 'success');
-            
-            // Refresh campaign data
-            refreshCampaigns();
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error creating campaign:', error);
-            showToast('Error', 'Failed to create campaign', 'error');
-        });
-}
-
-// Function to create a new campaign
-async function createCampaign(campaignData) {
-    return await apiRequest('campaigns', 'POST', campaignData);
-}
-
 // Refresh Campaigns
 function refreshCampaigns() {
+    showLoading();
     fetchCampaigns()
         .then(campaigns => {
             updateCampaignsTable(campaigns);
             updateDashboardMetrics(campaigns);
+            hideLoading();
         })
         .catch(error => {
             console.error('Error refreshing campaigns:', error);
+            hideLoading();
+            showToast('Error', 'Failed to refresh campaign data', 'error');
         });
 }
 
@@ -1427,4 +2060,72 @@ function removeToast(toast) {
             toast.parentNode.removeChild(toast);
         }
     }, 300);
+}
+
+async function displayResult(result, section) {
+    const resultElement = document.getElementById(`${section}-result`);
+    if (!resultElement) return;
+    
+    resultElement.innerHTML = '';
+    resultElement.classList.remove('success', 'error');
+    
+    if (result.success) {
+        resultElement.classList.add('success');
+        resultElement.textContent = '✓ Connection successful';
+    } else {
+        resultElement.classList.add('error');
+        
+        // Create main error message
+        const errorMsg = document.createElement('div');
+        errorMsg.textContent = `✗ ${result.error || 'Connection failed'}`;
+        resultElement.appendChild(errorMsg);
+        
+        // If it's an API test failure, add more diagnostic info
+        if (section === 'api' && result.error) {
+            // Add troubleshooting tips
+            const tipsList = document.createElement('ul');
+            tipsList.style.marginTop = '10px';
+            tipsList.style.fontSize = '0.9em';
+            
+            const tips = [
+                "Ensure your API Key is correct",
+                "Check that GoPhish server is running",
+                "Verify API endpoint URL is correct",
+                "Make sure you have created the necessary resources (templates, pages, profiles, groups)",
+                "Check browser console for detailed error messages"
+            ];
+            
+            tips.forEach(tip => {
+                const li = document.createElement('li');
+                li.textContent = tip;
+                tipsList.appendChild(li);
+            });
+            
+            resultElement.appendChild(tipsList);
+            
+            // Add a "View Console" message
+            const consoleMsg = document.createElement('div');
+            consoleMsg.style.marginTop = '10px';
+            consoleMsg.style.fontStyle = 'italic';
+            consoleMsg.textContent = 'For detailed error information, check your browser console (F12)';
+            resultElement.appendChild(consoleMsg);
+        }
+    }
+}
+
+// Helper function for alerts (alias for showToast)
+function showAlert(type, message) {
+    // Map alert types to toast titles
+    const titles = {
+        'success': 'Success',
+        'error': 'Error',
+        'warning': 'Warning',
+        'info': 'Information'
+    };
+    
+    // Get title based on type, or use default
+    const title = titles[type] || 'Notification';
+    
+    // Call showToast with appropriate parameters
+    showToast(title, message, type);
 }

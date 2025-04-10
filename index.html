@@ -32,33 +32,27 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#employees" class="nav-link" data-section="employees">
+                    <a href="#users" class="nav-link" data-section="users">
                         <i class="fas fa-users"></i>
-                        <span class="nav-text">Employees</span>
+                        <span class="nav-text">Users & Groups</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#simulator" class="nav-link" data-section="simulator">
+                    <a href="#templates" class="nav-link" data-section="templates">
                         <i class="fas fa-envelope"></i>
-                        <span class="nav-text">Email Simulator</span>
+                        <span class="nav-text">Email Templates</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#training" class="nav-link" data-section="training">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span class="nav-text">Training Modules</span>
+                    <a href="#pages" class="nav-link" data-section="pages">
+                        <i class="fas fa-file-alt"></i>
+                        <span class="nav-text">Landing Pages</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#reports" class="nav-link" data-section="reports">
-                        <i class="fas fa-chart-line"></i>
-                        <span class="nav-text">Reports & Analytics</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#compliance" class="nav-link" data-section="compliance">
-                        <i class="fas fa-clipboard-check"></i>
-                        <span class="nav-text">GRC Compliance</span>
+                    <a href="#sending" class="nav-link" data-section="sending">
+                        <i class="fas fa-paper-plane"></i>
+                        <span class="nav-text">Sending Profiles</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -152,7 +146,7 @@
                         </button>
                     </div>
                     <div class="user-profile">
-                        <img src="https://via.placeholder.com/40x40" alt="User Avatar" class="avatar">>
+                        <img src="https://via.placeholder.com/40x40" alt="User Avatar" class="avatar">
                         <div class="user-info">
                             <div class="user-name">Admin User</div>
                             <div class="user-role">Administrator</div>
@@ -198,25 +192,16 @@
                                 </div>
                                 <div class="summary-metrics">
                                     <div class="summary-metric">
-                                        <div class="metric-label">Overall Risk</div>
-                                        <div class="metric-value">Medium</div>
-                                        <div class="metric-trend down">
-                                            <i class="fas fa-arrow-down"></i> 0% Improvement
-                                        </div>
+                                        <div class="metric-label">Total Campaigns</div>
+                                        <div class="metric-value">0</div>
                                     </div>
                                     <div class="summary-metric">
-                                        <div class="metric-label">Employee Awareness</div>
-                                        <div class="metric-value">N/A</div>
-                                        <div class="metric-trend">
-                                            <i class="fas fa-minus"></i> No Data
-                                        </div>
-                                    </div>
-                                    <div class="summary-metric">
-                                        <div class="metric-label">Training Status</div>
+                                        <div class="metric-label">Phishing Success</div>
                                         <div class="metric-value">0%</div>
-                                        <div class="metric-trend">
-                                            <i class="fas fa-minus"></i> No Data
-                                        </div>
+                                    </div>
+                                    <div class="summary-metric">
+                                        <div class="metric-label">Report Rate</div>
+                                        <div class="metric-value">0%</div>
                                     </div>
                                 </div>
                             </div>
@@ -231,9 +216,6 @@
                             <div class="metric-content">
                                 <div class="metric-title">Active Campaigns</div>
                                 <div class="metric-value">0</div>
-                                <div class="metric-change">
-                                    <i class="fas fa-minus"></i> No previous data
-                                </div>
                             </div>
                         </div>
                         <div class="metric-card">
@@ -241,11 +223,8 @@
                                 <i class="fas fa-fish"></i>
                             </div>
                             <div class="metric-content">
-                                <div class="metric-title">Phishing Success Rate</div>
+                                <div class="metric-title">Click Rate</div>
                                 <div class="metric-value">0%</div>
-                                <div class="metric-change">
-                                    <i class="fas fa-minus"></i> No previous data
-                                </div>
                             </div>
                         </div>
                         <div class="metric-card">
@@ -253,23 +232,17 @@
                                 <i class="fas fa-user-shield"></i>
                             </div>
                             <div class="metric-content">
-                                <div class="metric-title">Training Completion</div>
-                                <div class="metric-value">0%</div>
-                                <div class="metric-change">
-                                    <i class="fas fa-minus"></i> No previous data
-                                </div>
+                                <div class="metric-title">User Groups</div>
+                                <div class="metric-value">0</div>
                             </div>
                         </div>
                         <div class="metric-card">
                             <div class="metric-icon bg-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
+                                <i class="fas fa-envelope"></i>
                             </div>
                             <div class="metric-content">
-                                <div class="metric-title">Risk Score</div>
-                                <div class="metric-value">0/100</div>
-                                <div class="metric-change">
-                                    <i class="fas fa-minus"></i> No previous data
-                                </div>
+                                <div class="metric-title">Templates</div>
+                                <div class="metric-value">0</div>
                             </div>
                         </div>
                     </div>
@@ -288,48 +261,19 @@
                                 <div id="campaignPerformanceChart"></div>
                             </div>
                         </div>
-
-                        <div class="chart-card">
-                            <div class="card-header">
-                                <h3>Employee Vulnerability</h3>
-                                <div class="card-actions">
-                                    <div class="dropdown">
-                                        <button class="dropdown-toggle">By Department <i class="fas fa-chevron-down"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div id="vulnerabilityChart"></div>
-                            </div>
-                        </div>
-
-                        <div class="chart-card">
-                            <div class="card-header">
-                                <h3>Training Completion Funnel</h3>
-                                <div class="card-actions">
-                                    <div class="dropdown">
-                                        <button class="dropdown-toggle">All Modules <i class="fas fa-chevron-down"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div id="trainingFunnelChart"></div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="dashboard-recent">
                         <div class="card">
                             <div class="card-header">
-                                <h3>Recent Activities</h3>
-                                <a href="#" class="view-all">View All</a>
+                                <h3>Recent Campaigns</h3>
+                                <a href="#campaigns" class="view-all">View All</a>
                             </div>
                             <div class="card-body">
                                 <div class="activity-list">
-                                    <!-- Activity items will be added dynamically -->
                                     <div class="empty-state">
                                         <i class="fas fa-info-circle"></i>
-                                        <p>No recent activities</p>
+                                        <p>No recent campaigns</p>
                                     </div>
                                 </div>
                             </div>
@@ -341,12 +285,11 @@
                 <section id="campaigns-section" class="content-section">
                     <div class="section-header">
                         <h2>Campaign Management</h2>
-                        <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> New Campaign</button>
+                        <button class="btn btn-primary" id="new-campaign-btn"><i class="fas fa-plus"></i> New Campaign</button>
                     </div>
 
                     <div class="tabs">
-                        <div class="tab active" data-tab="active-campaigns">Active Campaigns</div>
-                        <div class="tab" data-tab="scheduled">Scheduled</div>
+                        <div class="tab active" data-tab="active-campaigns">Active</div>
                         <div class="tab" data-tab="completed">Completed</div>
                         <div class="tab" data-tab="templates">Templates</div>
                     </div>
@@ -366,28 +309,31 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody id="campaigns-table-body">
                                     <!-- Campaign data will be dynamically loaded here -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div class="tab-content" id="scheduled-content">
-                        <!-- Scheduled campaigns content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-calendar-alt"></i>
-                            <h3>Scheduled Campaigns</h3>
-                            <p>No scheduled campaigns</p>
-                        </div>
-                    </div>
-
                     <div class="tab-content" id="completed-content">
-                        <!-- Completed campaigns content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-check-circle"></i>
-                            <h3>Completed Campaigns</h3>
-                            <p>No completed campaigns</p>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Campaign Name</th>
+                                        <th>Target Group</th>
+                                        <th>Status</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Results</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="completed-campaigns-table-body">
+                                    <!-- Completed campaigns will be loaded here -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
@@ -401,603 +347,182 @@
                     </div>
                 </section>
 
-                <!-- Employees Section -->
-                <section id="employees-section" class="content-section">
+                <!-- Users & Groups Section -->
+                <section id="users-section" class="content-section">
                     <div class="section-header">
-                        <h2>Employee Management</h2>
+                        <h2>Users & Groups Management</h2>
                         <div class="button-group">
                             <button class="btn btn-outline"><i class="fas fa-upload"></i> Import</button>
-                            <button class="btn btn-outline"><i class="fas fa-sync"></i> Sync HR</button>
-                            <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> Add Employee</button>
+                            <button class="btn btn-primary" id="new-user-btn"><i class="fas fa-plus"></i> Add User</button>
+                            <button class="btn btn-primary" id="new-group-btn"><i class="fas fa-plus"></i> New Group</button>
                         </div>
                     </div>
 
-                    <div class="filter-bar">
-                        <div class="search-input">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search employees...">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="users-list">Users</div>
+                        <div class="tab" data-tab="groups-list">Groups</div>
+                    </div>
+
+                    <div class="tab-content active" id="users-list-content">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox"></th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Position</th>
+                                        <th>Groups</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="filter-controls">
-                            <div class="filter-item">
-                                <label>Department:</label>
-                                <select>
-                                    <option>All Departments</option>
-                                    <option>Executive</option>
-                                    <option>IT</option>
-                                    <option>Finance</option>
-                                    <option>HR</option>
-                                    <option>Marketing</option>
-                                    <option>Sales</option>
-                                </select>
-                            </div>
-                            <div class="filter-item">
-                                <label>Risk Level:</label>
-                                <select>
-                                    <option>All Levels</option>
-                                    <option>High</option>
-                                    <option>Medium</option>
-                                    <option>Low</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-outline"><i class="fas fa-filter"></i> More Filters</button>
+                    </div>
+
+                    <div class="tab-content" id="groups-list-content">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Group Name</th>
+                                        <th>Members</th>
+                                        <th>Modified Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="groups-table-body">
+                                    <!-- Groups will be loaded here -->
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
+                </section>
+
+                <!-- Email Templates Section -->
+                <section id="templates-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Email Templates</h2>
+                        <button class="btn btn-primary" id="new-template-btn"><i class="fas fa-plus"></i> New Template</button>
                     </div>
 
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th><input type="checkbox"></th>
                                     <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Department</th>
-                                    <th>Risk Score</th>
-                                    <th>Training Complete</th>
-                                    <th>Last Phished</th>
-                                    <th>Status</th>
+                                    <th>Subject</th>
+                                    <th>Modified Date</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <!-- Employee data will be dynamically added here -->
-                                <tr>
-                                    <td colspan="9" class="text-center">No employees found</td>
-                                </tr>
+                            <tbody id="templates-table-body">
+                                <!-- Templates will be loaded here -->
                             </tbody>
                         </table>
                     </div>
+                </section>
 
-                    <div class="pagination">
-                        <button class="btn-icon"><i class="fas fa-chevron-left"></i></button>
-                        <button class="page-number active">1</button>
-                        <button class="btn-icon"><i class="fas fa-chevron-right"></i></button>
+                <!-- Landing Pages Section -->
+                <section id="pages-section" class="content-section">
+                    <div class="section-header">
+                        <h2>Landing Pages</h2>
+                        <button class="btn btn-primary" id="new-page-btn"><i class="fas fa-plus"></i> New Page</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Modified Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pages-table-body">
+                                <!-- Landing pages will be loaded here -->
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
-                <!-- Email Simulator Section -->
-                <section id="simulator-section" class="content-section">
+                <!-- Sending Profiles Section -->
+                <section id="sending-section" class="content-section">
                     <div class="section-header">
-                        <h2>Email Inbox Simulator</h2>
-                        <div class="button-group">
-                            <button class="btn btn-outline"><i class="fas fa-save"></i> Save Template</button>
-                            <button class="btn btn-primary"><i class="fas fa-paper-plane"></i> Test Email</button>
-                        </div>
+                        <h2>Sending Profiles</h2>
+                        <button class="btn btn-primary" id="new-profile-btn"><i class="fas fa-plus"></i> New Profile</button>
                     </div>
 
-                    <div class="simulator-container">
-                        <div class="simulator-sidebar">
-                            <div class="simulator-section">
-                                <h3>Email Templates</h3>
-                                <div class="template-list">
-                                    <div class="template-item active">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>Password Reset</span>
-                                    </div>
-                                    <div class="template-item">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>Office 365 Login</span>
-                                    </div>
-                                    <div class="template-item">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>Invoice Payment</span>
-                                    </div>
-                                    <div class="template-item">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>Shipment Notification</span>
-                                    </div>
-                                    <div class="template-item">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span>HR Benefits Update</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="simulator-section">
-                                <h3>Template Elements</h3>
-                                <div class="element-list">
-                                    <div class="element-item">
-                                        <i class="fas fa-font"></i>
-                                        <span>Text Block</span>
-                                    </div>
-                                    <div class="element-item">
-                                        <i class="fas fa-image"></i>
-                                        <span>Image</span>
-                                    </div>
-                                    <div class="element-item">
-                                        <i class="fas fa-link"></i>
-                                        <span>Button/Link</span>
-                                    </div>
-                                    <div class="element-item">
-                                        <i class="fas fa-table"></i>
-                                        <span>Table</span>
-                                    </div>
-                                    <div class="element-item">
-                                        <i class="fas fa-signature"></i>
-                                        <span>Signature</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="simulator-section">
-                                <h3>Tracking Options</h3>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="track-opens" checked>
-                                    <label for="track-opens">Track Opens</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="track-clicks" checked>
-                                    <label for="track-clicks">Track Clicks</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="track-downloads">
-                                    <label for="track-downloads">Track Downloads</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="track-submissions" checked>
-                                    <label for="track-submissions">Track Form Submissions</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="simulator-content">
-                            <div class="email-preview-header">
-                                <div class="email-controls">
-                                    <button class="btn-icon"><i class="fas fa-arrow-left"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-arrow-right"></i></button>
-                                    <button class="btn-icon"><i class="fas fa-redo"></i></button>
-                                </div>
-                                <div class="email-address-bar">
-                                    <i class="fas fa-lock"></i>
-                                    <span>https://mail.company.com/inbox</span>
-                                </div>
-                            </div>
-
-                            <div class="email-preview">
-                                <div class="email-header">
-                                    <div class="email-sender">
-                                        <img src="https://via.placeholder.com/40x40" alt="Microsoft Logo" class="sender-logo">                                        <div class="sender-details">
-                                            <div class="sender-name">Microsoft Account Team</div>
-                                            <div class="sender-email">account-security@microsoft.com</div>
-                                        </div>
-                                    </div>
-                                    <div class="email-subject">
-                                        Your Microsoft Account password needs to be reset
-                                    </div>
-                                    <div class="email-time">March 10, 2025 10:42 AM</div>
-                                </div>
-
-                                <div class="email-body">
-                                    <div class="editable-area" contenteditable="true">
-                                        <div class="email-content">
-                                            <img src="https://via.placeholder.com/600x100" alt="Microsoft" class="company-banner">                                            
-                                            <p class="greeting">Hello John,</p>
-                                            
-                                            <p>We detected unusual sign-in activity on your Microsoft account. To help keep you safe, we've temporarily locked your account.</p>
-                                            
-                                            <p>To unlock your account, you'll need to verify your identity and reset your password by clicking the button below:</p>
-                                            
-                                            <div class="action-button">
-                                                <a href="#" class="cta-button">Reset Password</a>
-                                            </div>
-                                            
-                                            <p>If you didn't try to sign in to your account, someone else might be trying to access it. Please reset your password immediately.</p>
-                                            
-                                            <p class="security-note">For your security, this link will expire in 24 hours.</p>
-                                            
-                                            <p>Thank you,<br>The Microsoft Account Team</p>
-                                            
-                                            <div class="footer-info">
-                                                <p>© 2025 Microsoft Corporation. All rights reserved.</p>
-                                                <p>Microsoft respects your privacy. Please read our <a href="#">Privacy Statement</a>.</p>
-                                                <p>Microsoft Corporation, One Microsoft Way, Redmond, WA 98052 USA</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="email-preview-footer">
-                                <div class="phishing-indicators">
-                                    <h4>Phishing Indicators</h4>
-                                    <div class="indicator-list">
-                                        <div class="indicator-item">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            <span>Spoofed sender address</span>
-                                        </div>
-                                        <div class="indicator-item">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            <span>Urgent call to action</span>
-                                        </div>
-                                        <div class="indicator-item">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            <span>Suspicious link destination</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="training-options">
-                                    <h4>Training Options</h4>
-                                    <div class="training-select">
-                                        <select>
-                                            <option>Immediate feedback</option>
-                                            <option>Redirect to training module</option>
-                                            <option>Delayed feedback (24 hours)</option>
-                                            <option>Custom training path</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Training Modules Section -->
-                <section id="training-section" class="content-section">
-                    <div class="section-header">
-                        <h2>Training Modules</h2>
-                        <div class="button-group">
-                            <button class="btn btn-outline"><i class="fas fa-upload"></i> Import Module</button>
-                            <button class="btn btn-primary pulsate-once"><i class="fas fa-plus"></i> Create Module</button>
-                        </div>
-                    </div>
-
-                    <div class="placeholder-content">
-                        <i class="fas fa-graduation-cap"></i>
-                        <h3>No Training Modules</h3>
-                        <p>Add your first training module to get started</p>
-                    </div>
-                </section>
-
-                <!-- Reports Section -->
-                <section id="reports-section" class="content-section">
-                    <div class="section-header">
-                        <h2>Reports & Analytics</h2>
-                        <div class="button-group">
-                            <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
-                            <button class="btn btn-outline"><i class="fas fa-cog"></i> Configure</button>
-                            <button class="btn btn-primary"><i class="fas fa-plus"></i> New Report</button>
-                        </div>
-                    </div>
-
-                    <div class="report-filters">
-                        <div class="filter-row">
-                            <div class="filter-item">
-                                <label>Date Range:</label>
-                                <div class="date-picker">
-                                    <input type="text" value="Mar 01, 2025 - Mar 28, 2025">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </div>
-                            </div>
-                            <div class="filter-item">
-                                <label>Department:</label>
-                                <select>
-                                    <option>All Departments</option>
-                                    <option>Executive</option>
-                                    <option>IT</option>
-                                    <option>Finance</option>
-                                    <option>HR</option>
-                                    <option>Marketing</option>
-                                    <option>Sales</option>
-                                </select>
-                            </div>
-                            <div class="filter-item">
-                                <label>Report Type:</label>
-                                <select>
-                                    <option>Campaign Performance</option>
-                                    <option>User Activity</option>
-                                    <option>Training Completion</option>
-                                    <option>Risk Assessment</option>
-                                </select>
-                            </div>
-                            <button class="btn btn-outline"><i class="fas fa-filter"></i> Apply Filters</button>
-                        </div>
-                    </div>
-
-                    <div class="placeholder-content">
-                        <i class="fas fa-chart-line"></i>
-                        <h3>No Reports Available</h3>
-                        <p>Run a campaign to generate reports</p>
-                    </div>
-                </section>
-
-                <!-- Compliance Section -->
-                <section id="compliance-section" class="content-section">
-                    <div class="section-header">
-                        <h2>GRC Compliance</h2>
-                        <div class="button-group">
-                            <button class="btn btn-outline"><i class="fas fa-download"></i> Export</button>
-                            <button class="btn btn-primary"><i class="fas fa-file-alt"></i> Generate Report</button>
-                        </div>
-                    </div>
-
-                    <div class="tabs">
-                        <div class="tab active" data-tab="frameworks">Frameworks</div>
-                        <div class="tab" data-tab="reports">Compliance Reports</div>
-                        <div class="tab" data-tab="audit">Audit Logs</div>
-                        <div class="tab" data-tab="remediation">Risk Remediation</div>
-                        <div class="tab" data-tab="mappings">Control Mappings</div>
-                    </div>
-
-                    <div class="tab-content active" id="frameworks-content">
-                        <div class="filter-bar">
-                            <div class="filter-controls">
-                                <div class="filter-item">
-                                    <label>Industry:</label>
-                                    <select id="industry-filter">
-                                        <option>All Industries</option>
-                                        <option>Healthcare</option>
-                                        <option>Finance</option>
-                                        <option>Retail</option>
-                                        <option>Technology</option>
-                                        <option>Government</option>
-                                    </select>
-                                </div>
-                                <div class="filter-item">
-                                    <label>Status:</label>
-                                    <select id="status-filter">
-                                        <option>All Statuses</option>
-                                        <option>Compliant</option>
-                                        <option>In Progress</option>
-                                        <option>At Risk</option>
-                                        <option>Not Started</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="placeholder-content">
-                            <i class="fas fa-shield-alt"></i>
-                            <h3>No Compliance Frameworks</h3>
-                            <p>Add compliance frameworks to track GRC status</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="reports-content">
-                        <!-- Compliance reports content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-file-alt"></i>
-                            <h3>Compliance Reports</h3>
-                            <p>No compliance reports available</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="audit-content">
-                        <!-- Audit logs content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-history"></i>
-                            <h3>Audit Logs</h3>
-                            <p>No audit logs available</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="remediation-content">
-                        <div class="placeholder-content">
-                            <i class="fas fa-tasks"></i>
-                            <h3>Risk Remediation</h3>
-                            <p>No remediation tasks available</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="mappings-content">
-                        <!-- Control mappings content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-project-diagram"></i>
-                            <h3>Control Mappings</h3>
-                            <p>No control mappings available</p>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Interface Type</th>
+                                    <th>From Address</th>
+                                    <th>Host</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profiles-table-body">
+                                <!-- Sending profiles will be loaded here -->
+                            </tbody>
+                        </table>
                     </div>
                 </section>
 
                 <!-- Settings Section -->
                 <section id="settings-section" class="content-section">
-                    <!-- Settings content would go here -->
                     <div class="section-header">
-                        <h2>Platform Settings</h2>
+                        <h2>Settings</h2>
                     </div>
 
-                    <div class="tabs">
-                        <div class="tab active" data-tab="general">General</div>
-                        <div class="tab" data-tab="appearance">Appearance</div>
-                        <div class="tab" data-tab="integrations">Integrations</div>
-                        <div class="tab" data-tab="notifications">Notifications</div>
-                        <div class="tab" data-tab="users">User Management</div>
-                    </div>
-
-                    <div class="tab-content active" id="general-content">
-                        <div class="settings-form">
-                            <div class="form-section">
-                                <h3>Organization Settings</h3>
-                                <div class="form-group">
-                                    <label>Organization Name</label>
-                                    <input type="text" value="My Organization">
-                                </div>
-                                <div class="form-group">
-                                    <label>Industry</label>
-                                    <select>
-                                        <option>Technology</option>
-                                        <option>Healthcare</option>
-                                        <option>Finance</option>
-                                        <option>Education</option>
-                                        <option>Manufacturing</option>
-                                        <option>Retail</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Company Size</label>
-                                    <select>
-                                        <option>1-50 employees</option>
-                                        <option>51-200 employees</option>
-                                        <option selected>201-1000 employees</option>
-                                        <option>1001-5000 employees</option>
-                                        <option>5001+ employees</option>
-                                    </select>
-                                </div>
+                    <div class="settings-form">
+                        <div class="form-section">
+                            <h3>General Settings</h3>
+                            <div class="form-group">
+                                <label>API Key</label>
+                                <input type="text" id="api-key" value="62eebca8cceddcfc38bb24b0527ae43d439e8ab0e95f2fdf36ffc9f84fc59528" readonly>
+                                <button class="btn-icon" id="copy-api-key"><i class="fas fa-copy"></i></button>
                             </div>
-
-                            <div class="form-section">
-                                <h3>Email Settings</h3>
-                                <div class="form-group">
-                                    <label>SMTP Server</label>
-                                    <input type="text" value="smtp.company.com">
-                                </div>
-                                <div class="form-group">
-                                    <label>SMTP Port</label>
-                                    <input type="text" value="587">
-                                </div>
-                                <div class="form-group">
-                                    <label>Email From</label>
-                                    <input type="text" value="security-training@company.com">
-                                </div>
-                                <div class="form-group">
-                                    <label>Email Authentication</label>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="email-auth" checked>
-                                        <label for="email-auth"></label>
-                                        <span class="toggle-label">Enabled</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-section">
-                                <h3>Security Settings</h3>
-                                <div class="form-group">
-                                    <label>Two-Factor Authentication</label>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="two-factor" checked>
-                                        <label for="two-factor"></label>
-                                        <span class="toggle-label">Required for all admin users</span>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Session Timeout</label>
-                                    <select>
-                                        <option>15 minutes</option>
-                                        <option selected>30 minutes</option>
-                                        <option>1 hour</option>
-                                        <option>2 hours</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>IP Restrictions</label>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="ip-restrict">
-                                        <label for="ip-restrict"></label>
-                                        <span class="toggle-label">Disabled</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="form-buttons">
-                                <button class="btn btn-outline">Cancel</button>
-                                <button class="btn btn-primary">Save Changes</button>
+                            <div class="form-group">
+                                <label>API URL</label>
+                                <input type="text" id="api-url" value="https://13.48.140.162:3333/api">
                             </div>
                         </div>
-                    </div>
 
-                    <div class="tab-content" id="appearance-content">
-                        <div class="settings-form">
-                            <div class="form-section">
-                                <h3>Theme Settings</h3>
-                                <div class="form-group">
-                                    <label>Default Theme</label>
-                                    <div class="theme-options">
-                                        <div class="theme-option active" data-theme="light">
-                                            <div class="theme-preview light-theme"></div>
-                                            <span>Light</span>
-                                        </div>
-                                        <div class="theme-option" data-theme="dark">
-                                            <div class="theme-preview dark-theme"></div>
-                                            <span>Dark</span>
-                                        </div>
-                                        <div class="theme-option" data-theme="auto">
-                                            <div class="theme-preview auto-theme"></div>
-                                            <span>Auto (System)</span>
-                                        </div>
+                        <div class="form-section">
+                            <h3>Appearance</h3>
+                            <div class="form-group">
+                                <label>Theme</label>
+                                <div class="theme-options">
+                                    <div class="theme-option active" data-theme="light">
+                                        <div class="theme-preview light-theme"></div>
+                                        <span>Light</span>
                                     </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>Accent Color</label>
-                                    <div class="color-options">
-                                        <div class="color-option active" style="--color: #1a73e8;" data-color="#1a73e8"></div>
-                                        <div class="color-option" style="--color: #ea4335;" data-color="#ea4335"></div>
-                                        <div class="color-option" style="--color: #34a853;" data-color="#34a853"></div>
-                                        <div class="color-option" style="--color: #fbbc05;" data-color="#fbbc05"></div>
-                                        <div class="color-option" style="--color: #673ab7;" data-color="#673ab7"></div>
-                                        <div class="color-option" style="--color: #ff6d00;" data-color="#ff6d00"></div>
+                                    <div class="theme-option" data-theme="dark">
+                                        <div class="theme-preview dark-theme"></div>
+                                        <span>Dark</span>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="form-section">
-                                <h3>Dashboard Layout</h3>
-                                <div class="form-group">
-                                    <label>Default Dashboard View</label>
-                                    <select>
-                                        <option selected>Standard</option>
-                                        <option>Compact</option>
-                                        <option>Expanded</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Show Recent Activities</label>
-                                    <div class="toggle-switch">
-                                        <input type="checkbox" id="show-activities" checked>
-                                        <label for="show-activities"></label>
-                                        <span class="toggle-label">Enabled</span>
-                                    </div>
+                            <div class="form-group">
+                                <label>Accent Color</label>
+                                <div class="color-options">
+                                    <div class="color-option active" style="--color: #1a73e8;" data-color="#1a73e8"></div>
+                                    <div class="color-option" style="--color: #ea4335;" data-color="#ea4335"></div>
+                                    <div class="color-option" style="--color: #34a853;" data-color="#34a853"></div>
+                                    <div class="color-option" style="--color: #fbbc05;" data-color="#fbbc05"></div>
+                                    <div class="color-option" style="--color: #673ab7;" data-color="#673ab7"></div>
                                 </div>
                             </div>
-
-                            <div class="form-buttons">
-                                <button class="btn btn-outline">Reset to Default</button>
-                                <button class="btn btn-primary">Save Changes</button>
-                            </div>
                         </div>
-                    </div>
 
-                    <div class="tab-content" id="integrations-content">
-                        <!-- Integrations content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-plug"></i>
-                            <h3>API Integrations</h3>
-                            <p>No integrations configured</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="notifications-content">
-                        <!-- Notifications content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-bell"></i>
-                            <h3>Notification Settings</h3>
-                            <p>No notification settings configured</p>
-                        </div>
-                    </div>
-
-                    <div class="tab-content" id="users-content">
-                        <!-- User management content would go here -->
-                        <div class="placeholder-content">
-                            <i class="fas fa-users-cog"></i>
-                            <h3>User & Role Management</h3>
-                            <p>No additional users configured</p>
+                        <div class="form-buttons">
+                            <button class="btn btn-primary" id="save-settings">Save Changes</button>
                         </div>
                     </div>
                 </section>
@@ -1024,12 +549,96 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Template Modal -->
+            <div class="modal" id="new-template-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create Email Template</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Template form will go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" id="cancel-template">Cancel</button>
+                        <button class="btn btn-primary" id="create-template">Create Template</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Modal -->
+            <div class="modal" id="new-page-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create Landing Page</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Page form will go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" id="cancel-page">Cancel</button>
+                        <button class="btn btn-primary" id="create-page">Create Page</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Modal -->
+            <div class="modal" id="new-user-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add User</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- User form will go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" id="cancel-user">Cancel</button>
+                        <button class="btn btn-primary" id="create-user">Add User</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group Modal -->
+            <div class="modal" id="new-group-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create Group</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Group form will go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" id="cancel-group">Cancel</button>
+                        <button class="btn btn-primary" id="create-group">Create Group</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Modal -->
+            <div class="modal" id="new-profile-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Create Sending Profile</h2>
+                        <button class="close-modal"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Profile form will go here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline" id="cancel-profile">Cancel</button>
+                        <button class="btn btn-primary" id="create-profile">Create Profile</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.35.5/apexcharts.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.3.0/d3.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
