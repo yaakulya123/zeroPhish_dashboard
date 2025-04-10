@@ -14,7 +14,7 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     const options = {
         method: method,
         headers: {
-            'Authorization': API_KEY,
+            'Authorization': `Api-Key ${API_KEY}`,
             'Content-Type': 'application/json'
         }
     };
@@ -53,11 +53,6 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
             }
         }
         
-        // For POST requests, add a success flag to maintain consistency
-        if (method === 'POST' && jsonResponse && !('success' in jsonResponse)) {
-            jsonResponse.success = true;
-        }
-        
         // Return the already parsed JSON or the raw text
         return jsonResponse || responseText;
     } catch (error) {
@@ -76,67 +71,21 @@ async function fetchCampaigns() {
 async function createCampaign(campaignData) {
     console.log("Creating campaign with data:", campaignData);
     try {
-        // Ensure template is properly formatted - this is the critical part
+        // Ensure template is properly formatted
         if (!campaignData.template || !campaignData.template.id) {
             showToast('Error', 'Email template is required', 'error');
             return null;
         }
         
-        // Make a direct API request instead of using our helper
-        const url = `${API_BASE_URL}/campaigns/`;
+        const result = await apiRequest('campaigns', 'POST', campaignData);
+        console.log("Campaign creation response:", result);
         
-        // Format the campaign data specifically for GoPhish
-        const apiData = {
-            name: campaignData.name,
-            template: {
-                id: Number(campaignData.template.id)
-            },
-            url: campaignData.url,
-            page: {
-                id: Number(campaignData.page.id)
-            },
-            smtp: {
-                id: Number(campaignData.smtp.id)
-            },
-            launch_date: campaignData.launch_date,
-            groups: campaignData.groups || []
-        };
-        
-        console.log("Sending direct API data:", JSON.stringify(apiData));
-        
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': API_KEY,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(apiData)
-        });
-        
-        // Get the response text
-        const responseText = await response.text();
-        console.log("Raw API response:", responseText);
-        
-        // Try to parse it as JSON
-        let result;
-        try {
-            result = JSON.parse(responseText);
-            console.log("Parsed response:", result);
-        } catch (e) {
-            console.error("Failed to parse response:", e);
-            result = null;
-        }
-        
-        // Check if response was successful
-        if (response.ok && result && !result.error) {
+        if (result && !result.error) {
             showToast('Success', 'Campaign created successfully', 'success');
             return result;
         } else {
-            // Handle error from response
-            const errorMsg = result && result.message 
-                ? result.message 
-                : `Failed with status ${response.status}`;
-            
+            // If result has an error message, show it
+            const errorMsg = result && result.message ? result.message : 'Unknown error';
             showToast('Error', `Failed to create campaign: ${errorMsg}`, 'error');
             return null;
         }
@@ -231,6 +180,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Advanced visualizations with actual data
             initDashboardCharts(campaigns);
             
+            // Initialize all modal buttons
+            initModalButtons();
+            
             // Hide loading screen
             hideLoading();
             
@@ -251,6 +203,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Initialize charts with no data
             initDashboardCharts(null);
+            
+            // Initialize all modal buttons
+            initModalButtons();
             
             // Hide loading screen
             hideLoading();
@@ -567,8 +522,8 @@ async function loadCampaignFormData() {
                     </div>
                     
                     <div class="form-group">
-                        <label for="template">Email Template:</label>
-                        <select id="template" name="template" required>
+                        <label for="campaign-template">Email Template:</label>
+                        <select id="campaign-template" name="template" required>
                             <option value="">Select Email Template</option>
                             ${templates && templates.map(template => `
                                 <option value="${template.id}">${template.name}</option>
@@ -577,8 +532,8 @@ async function loadCampaignFormData() {
                     </div>
                     
                     <div class="form-group">
-                        <label for="landing-page">Landing Page:</label>
-                        <select id="landing-page" name="landing-page" required>
+                        <label for="campaign-page">Landing Page:</label>
+                        <select id="campaign-page" name="page" required>
                             <option value="">Select Landing Page</option>
                             ${pages && pages.map(page => `
                                 <option value="${page.id}">${page.name}</option>
@@ -587,25 +542,25 @@ async function loadCampaignFormData() {
                     </div>
                     
                     <div class="form-group">
-                        <label for="redirect-url">URL:</label>
-                        <input type="url" id="redirect-url" name="url" value="https://13.48.140.162" required>
+                        <label for="campaign-url">URL:</label>
+                        <input type="url" id="campaign-url" name="url" value="https://13.48.140.162" required>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="launch-date">Launch Date</label>
-                            <input type="date" id="launch-date" name="launch_date" required>
+                            <label for="campaign-launch-date">Launch Date</label>
+                            <input type="date" id="campaign-launch-date" name="launch_date" required>
                         </div>
                         
                         <div class="form-group">
-                            <label for="launch-time">Launch Time</label>
-                            <input type="time" id="launch-time" name="launch_time" required>
+                            <label for="campaign-launch-time">Launch Time</label>
+                            <input type="time" id="campaign-launch-time" name="launch_time" required>
                         </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="sending-profile">Sending Profile:</label>
-                        <select id="sending-profile" name="profile" required>
+                        <label for="campaign-profile">Sending Profile:</label>
+                        <select id="campaign-profile" name="profile" required>
                             <option value="">Select Sending Profile</option>
                             ${profiles && profiles.map(profile => `
                                 <option value="${profile.id}">${profile.name}</option>
@@ -614,8 +569,9 @@ async function loadCampaignFormData() {
                     </div>
                     
                     <div class="form-group">
-                        <label for="target-groups">Target Groups:</label>
-                        <select id="target-groups" name="groups" multiple>
+                        <label for="campaign-group">Target Group:</label>
+                        <select id="campaign-group" name="group" required>
+                            <option value="">Select Group</option>
                             ${groups && groups.map(group => `
                                 <option value="${group.id}">${group.name}</option>
                             `).join('') || ''}
@@ -624,22 +580,22 @@ async function loadCampaignFormData() {
                 </form>
             `;
             
-            // Set default date to current date + time to current time + 15 minutes
+            // Set default date to today and time to current time + 15 minutes
             const now = new Date();
-            now.setMinutes(now.getMinutes() + 2); // Add 15 minute buffer
+            now.setMinutes(now.getMinutes() + 15);
 
-            const launchDateInput = document.getElementById('launch-date');
+            const launchDateInput = document.getElementById('campaign-launch-date');
             if (launchDateInput) {
-                    launchDateInput.valueAsDate = now;
-    
-                     // Set time to current time + 15 minutes
-                     const launchTimeInput = document.getElementById('launch-time');
-                        if (launchTimeInput) {
-                            const hours = now.getHours().toString().padStart(2, '0');
-                            const minutes = now.getMinutes().toString().padStart(2, '0');
-                            launchTimeInput.value = `${hours}:${minutes}`;
-                        }
-                    }
+                launchDateInput.valueAsDate = now;
+                
+                // Set time to current time + 15 minutes
+                const launchTimeInput = document.getElementById('campaign-launch-time');
+                if (launchTimeInput) {
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    launchTimeInput.value = `${hours}:${minutes}`;
+                }
+            }
         }
         
         // Show the modal
@@ -1018,77 +974,90 @@ async function testGoPhishAPI() {
     }
 }
 
-// Update handleCampaignSubmit to try using entire objects
+// Handle campaign form submission
 async function handleCampaignSubmit(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     try {
         showLoading();
         
         // Get form data
         const name = document.getElementById('campaign-name').value.trim();
-        const templateId = parseInt(document.getElementById('template').value);
-        const pageId = parseInt(document.getElementById('landing-page').value);
-        const url = document.getElementById('redirect-url').value.trim();
-        const profileId = parseInt(document.getElementById('sending-profile').value);
+        const templateId = parseInt(document.getElementById('campaign-template').value);
+        const pageId = parseInt(document.getElementById('campaign-page').value);
+        const url = document.getElementById('campaign-url').value.trim();
+        const profileId = parseInt(document.getElementById('campaign-profile').value);
         
         // Get launch date/time and create ISO string
-        const launchDate = document.getElementById('launch-date').value;
-        const launchTime = document.getElementById('launch-time').value || '08:00';
+        const launchDate = document.getElementById('campaign-launch-date').value;
+        const launchTime = document.getElementById('campaign-launch-time').value || '08:00';
         const launchDateTime = new Date(`${launchDate}T${launchTime}`);
         
-        // Get selected groups from multi-select
-        const groupSelect = document.getElementById('target-groups');
-        const groupIds = Array.from(groupSelect.selectedOptions).map(option => ({
-            id: parseInt(option.value)
-        }));
+        // Get selected groups from dropdown
+        const groupSelect = document.getElementById('campaign-group');
+        const groupId = parseInt(groupSelect.value);
         
-        if (groupIds.length === 0) {
-            showAlert('warning', 'Please select at least one target group');
+        // Validate required fields
+        if (!name || !templateId || !pageId || !url || !profileId) {
+            showToast('Error', 'Please fill in all required fields', 'error');
+            hideLoading();
             return;
         }
         
-        console.log('Form data:', { name, templateId, pageId, url, profileId, launchDateTime, groupIds });
+        if (!groupId) {
+            showToast('Error', 'Please select a target group', 'error');
+            hideLoading();
+            return;
+        }
         
-        // Create campaign object with flat field names
-        const campaignData = {
-            name: name,
-            template_id: Number(templateId),  // Use flat field
-            page_id: Number(pageId),          // Use flat field
-            url: url,
-            smtp_id: Number(profileId),       // Use flat field
-            launch_date: launchDateTime.toISOString(),
-            groups: groupIds
-        };
-        
-        console.log('Selected template ID:', templateId, typeof templateId);
-        
-        // Send API request
-        const response = await createCampaignDirectRequest(
+        console.log('Form data:', { 
             name, 
             templateId, 
             pageId, 
             url, 
             profileId, 
-            launchDateTime.toISOString(), 
-            groupIds
-        );
+            launchDateTime: launchDateTime.toISOString(),
+            groupId
+        });
         
-        console.log('Campaign creation response:', response);
+        // Prepare campaign data exactly as GoPhish expects it
+        const campaignData = {
+            name: name,
+            template: {
+                id: templateId
+            },
+            url: url,
+            page: {
+                id: pageId
+            },
+            smtp: {
+                id: profileId
+            },
+            launch_date: launchDateTime.toISOString(),
+            groups: [{ id: groupId }]
+        };
         
-        if (response.success === false) {
-            showAlert('error', `Failed to create campaign: ${response.message}`);
-            return;
+        // Submit to API
+        console.log('Creating campaign with:', campaignData);
+        const response = await createCampaign(campaignData);
+        
+        if (response) {
+            // Close modal
+            const modal = document.getElementById('new-campaign-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Show success message
+            showToast('Success', 'Campaign created successfully', 'success');
+            
+            // Refresh campaign data
+            refreshCampaigns();
         }
-        
-        showAlert('success', 'Campaign created successfully!');
-        
-        // Reset form and update list
-        document.getElementById('campaign-form').reset();
-        fetchCampaigns();
     } catch (error) {
         console.error('Campaign creation error:', error);
-        showAlert('error', `Error creating campaign: ${error.message || 'Unknown error'}`);
+        showToast('Error', `Error creating campaign: ${error.message || 'Unknown error'}`, 'error');
     } finally {
         hideLoading();
     }
@@ -2128,4 +2097,131 @@ function showAlert(type, message) {
     
     // Call showToast with appropriate parameters
     showToast(title, message, type);
+}
+
+// Connect all the modal buttons
+function initModalButtons() {
+    // New Campaign button
+    const newCampaignBtn = document.getElementById('new-campaign-btn');
+    if (newCampaignBtn) {
+        newCampaignBtn.addEventListener('click', loadCampaignFormData);
+    }
+    
+    // Campaign create button
+    const createCampaignBtn = document.getElementById('create-campaign');
+    if (createCampaignBtn) {
+        createCampaignBtn.addEventListener('click', handleCampaignSubmit);
+    }
+    
+    // Campaign cancel button
+    const cancelCampaignBtn = document.getElementById('cancel-campaign');
+    if (cancelCampaignBtn) {
+        cancelCampaignBtn.addEventListener('click', function() {
+            const modal = document.getElementById('new-campaign-modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    }
+    
+    // New template button
+    const newTemplateBtn = document.getElementById('new-template-btn');
+    if (newTemplateBtn) {
+        newTemplateBtn.addEventListener('click', function() {
+            // Show template modal
+            const modal = document.getElementById('new-template-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // New page button
+    const newPageBtn = document.getElementById('new-page-btn');
+    if (newPageBtn) {
+        newPageBtn.addEventListener('click', function() {
+            // Show page modal
+            const modal = document.getElementById('new-page-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // New user button
+    const newUserBtn = document.getElementById('new-user-btn');
+    if (newUserBtn) {
+        newUserBtn.addEventListener('click', function() {
+            // Show user modal
+            const modal = document.getElementById('new-user-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // New group button
+    const newGroupBtn = document.getElementById('new-group-btn');
+    if (newGroupBtn) {
+        newGroupBtn.addEventListener('click', function() {
+            // Show group modal
+            const modal = document.getElementById('new-group-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // New profile button
+    const newProfileBtn = document.getElementById('new-profile-btn');
+    if (newProfileBtn) {
+        newProfileBtn.addEventListener('click', function() {
+            // Show profile modal
+            const modal = document.getElementById('new-profile-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    
+    // Connect all close buttons
+    document.querySelectorAll('.close-modal').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        });
+    });
+    
+    // Copy API key button
+    const copyApiKeyBtn = document.getElementById('copy-api-key');
+    if (copyApiKeyBtn) {
+        copyApiKeyBtn.addEventListener('click', function() {
+            const apiKeyInput = document.getElementById('api-key');
+            if (apiKeyInput) {
+                apiKeyInput.select();
+                document.execCommand('copy');
+                showToast('Copied', 'API key copied to clipboard', 'success');
+            }
+        });
+    }
+    
+    // Save settings button
+    const saveSettingsBtn = document.getElementById('save-settings');
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', function() {
+            const apiUrl = document.getElementById('api-url').value;
+            // Save the new API URL
+            localStorage.setItem('api-url', apiUrl);
+            showToast('Settings Saved', 'Your settings have been saved', 'success');
+        });
+    }
 }
